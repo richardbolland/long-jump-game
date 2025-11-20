@@ -1,7 +1,7 @@
 /**
- * Long Jump Game - Version 0.8.1
- * Saved on: 19 Nov 2025
- * Features: Submit Button in Header, Responsive Layout, Main Menu, Draggable Board, Start Restrictions, 50 Columns, Confetti
+ * Long Jump Game - Version 0.13
+ * Saved on: 20 Nov 2025
+ * Features: Correct Green (#59AD20) overlay, Dark Gray Text on Tiles, Original Orange UI, Score Interpolation, 50 Columns, Full Code Fix
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -33,7 +33,8 @@ const Confetti = () => {
     canvas.height = height;
 
     const particles = [];
-    const colors = ['#f97316', '#fbbf24', '#ffffff', '#ef4444', '#3b82f6'];
+    // Reverted to original festive mix
+    const colors = ['#f97316', '#fbbf24', '#ffffff', '#ef4444', '#3b82f6', '#59AD20'];
 
     for (let i = 0; i < 150; i++) {
       particles.push({
@@ -125,9 +126,12 @@ const getRandomTiles = (count) => {
   
   const selected = [];
   for (let i = 0; i < count; i++) {
+    if (pool.length === 0) break;
     const randomIndex = Math.floor(Math.random() * pool.length);
     selected.push(pool[randomIndex]);
+    pool.splice(randomIndex, 1);
   }
+  
   return selected;
 };
 
@@ -146,7 +150,7 @@ const isLinearPlacement = (tiles) => {
 
 export default function LongJumpGame() {
   // -- State --
-  const [gameState, setGameState] = useState('menu'); // 'menu' | 'playing' | 'gameOver'
+  const [gameState, setGameState] = useState('menu');
   const [playerName, setPlayerName] = useState('');
   
   const [grid, setGrid] = useState(() => createEmptyGrid());
@@ -154,7 +158,11 @@ export default function LongJumpGame() {
   const [bonusSpots, setBonusSpots] = useState([]);
   const [selectedTileIndex, setSelectedTileIndex] = useState(null);
   const [placedTiles, setPlacedTiles] = useState([]);
-  const [score, setScore] = useState(0);
+  
+  // Scoring & Animation State
+  const [score, setScore] = useState(0); // True game score
+  const [displayScore, setDisplayScore] = useState(0); // Animated visual score
+  
   const [message, setMessage] = useState({ text: "Start at Column 1", type: "info" });
   const [isValidating, setIsValidating] = useState(false);
 
@@ -170,6 +178,34 @@ export default function LongJumpGame() {
   
   const hasLockedTiles = grid.some(row => row.some(cell => cell !== null));
 
+  // -- Effects --
+
+  // Score Interpolation Animation
+  useEffect(() => {
+    if (displayScore === score) return;
+
+    const duration = 500; // 500ms animation
+    const startTime = performance.now();
+    const startValue = displayScore;
+    const endValue = score;
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+      
+      const current = Math.floor(startValue + (endValue - startValue) * ease);
+      setDisplayScore(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [score]);
+
   // -- Initialization --
   useEffect(() => {
     initGame();
@@ -180,6 +216,7 @@ export default function LongJumpGame() {
     setHand(getRandomTiles(INITIAL_HAND_SIZE));
     setPlacedTiles([]);
     setScore(0);
+    setDisplayScore(0);
     setBonusSpots(generateRandomBonuses());
     setMessage({ text: "Drag or Click letters to place them.", type: "neutral" });
     setIsFinishing(false);
@@ -247,7 +284,7 @@ export default function LongJumpGame() {
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // -- Interaction Logic (Click) --
+  // -- Interaction Logic --
 
   const handleHandClick = (index) => {
     if (isFinishing) return;
@@ -599,7 +636,7 @@ export default function LongJumpGame() {
                     <div className="text-3xl font-black text-gray-800 mb-6">{playerName}</div>
                     
                     <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Distance</div>
-                    <div className="text-6xl font-black text-orange-600">{score}</div>
+                    <div className="text-6xl font-black text-orange-600">{displayScore}m</div>
                   </div>
 
                   <button 
@@ -728,8 +765,8 @@ export default function LongJumpGame() {
          </div>
          <div className="flex gap-6">
              <div className="text-center">
-                 <span className="block text-[10px] uppercase tracking-widest text-orange-400">Current</span>
-                 <span className="font-black text-2xl text-orange-600">{score}</span>
+                 <span className="block text-[10px] uppercase tracking-widest text-orange-400">DISTANCE</span>
+                 <span className="font-black text-2xl text-orange-600">{displayScore}m</span>
              </div>
          </div>
       </div>
@@ -755,7 +792,7 @@ export default function LongJumpGame() {
                 style={{ width: 'fit-content', minWidth: 'fit-content' }}>
             
             <div 
-                className="grid gap-[2px]"
+                className="relative z-10 grid gap-[2px]"
                 style={{ 
                 gridTemplateColumns: `repeat(${GRID_COLS}, minmax(${CELL_SIZE}px, 1fr))`,
                 gridTemplateRows: `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`
@@ -768,6 +805,12 @@ export default function LongJumpGame() {
                     const isColStart = c === 0;
                     const isStartZone = isColStart && !content && !hasLockedTiles;
                     const isLocked = content?.type === 'locked';
+                    
+                    // Visual Milestones every 5 columns
+                    const isMilestone = (c + 1) % 5 === 0;
+                    
+                    // Progress overlay logic
+                    const isCompleted = c < displayScore;
 
                     return (
                     <div 
@@ -776,25 +819,39 @@ export default function LongJumpGame() {
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDropOnGrid(e, r, c)}
                         className={`
-                        relative flex items-center justify-center rounded-[4px] transition-all duration-100 w-10 h-10
+                        relative flex items-center justify-center rounded-[4px] transition-all duration-300 w-10 h-10
                         ${content ? (content.type === 'temp' ? 'cursor-grab active:cursor-grabbing shadow-sm' : 'cursor-default shadow-sm') : 'hover:bg-white/20'}
-                        ${isLocked ? 'bg-[#f8f5ed] text-black shadow-[0_2px_0_rgba(0,0,0,0.1)]' : ''}
+                        
+                        /* Background Styles based on Zone */
+                        ${isLocked ? (isCompleted ? 'bg-[#59AD20] text-gray-900 shadow-[0_2px_0_rgba(0,0,0,0.2)]' : 'bg-[#f8f5ed] text-gray-900 shadow-[0_2px_0_rgba(0,0,0,0.1)]') : ''}
                         ${content?.type === 'temp' ? 'bg-yellow-50 ring-2 ring-yellow-400 shadow-[0_4px_0_rgba(0,0,0,0.1)] -translate-y-[2px] z-10' : ''}
-                        ${!content && !isStartZone && (r + c) % 2 === 0 ? 'bg-black/5' : 'bg-transparent'} 
-                        ${isStartZone ? 'animate-start-column' : ''}
+                        
+                        /* Empty State Styles */
+                        ${!content && isCompleted ? 'bg-[#59AD20]/20' : (!content && !isStartZone && (r + c) % 2 === 0 ? 'bg-black/5' : 'bg-transparent')} 
+                        
+                        /* Start Zone Styling (Green tint) */
+                        ${!content && isColStart ? 'bg-green-900/10 border-green-900/20' : ''}
+
+                        /* Milestone Styling (Darker vertical lines every 5 cols) */
+                        ${!content && isMilestone ? 'border-r-2 border-r-black/10' : 'border border-black/5'}
+                        
+                        /* Animation when overlay appears */
+                        ${isCompleted ? 'animate-pop-green' : ''}
+
                         ${isFinishing && isLocked ? 'animate-flash-orange' : ''}
-                        border border-black/5
                         `}
                     >
-                        {r === 0 && (
-                            <div className="absolute -top-6 text-[10px] font-bold text-orange-800/40 select-none z-10">
-                                {c + 1}
+                        {/* Start Label */}
+                        {r === 0 && c === 0 && (
+                             <div className="absolute -top-6 left-0 text-[10px] font-black text-green-700 uppercase tracking-widest select-none z-10">
+                                START
                             </div>
                         )}
 
-                        {r === GRID_ROWS - 1 && (
-                            <div className="absolute -bottom-6 text-[10px] font-bold text-orange-800/40 select-none z-10">
-                                {c + 1}
+                        {/* Distance Markers */}
+                        {r === 0 && isMilestone && (
+                            <div className="absolute -top-6 text-[10px] font-bold text-gray-400 select-none z-10">
+                                {c + 1}m
                             </div>
                         )}
 
@@ -914,7 +971,7 @@ export default function LongJumpGame() {
         }
         
         .animate-start-column {
-          animation: pulse-white 3s infinite ease-in-out;
+          /* animation: pulse-white 3s infinite ease-in-out; REMOVED AS REQUESTED */
         }
         
         .animate-pulse-slow {
@@ -925,6 +982,15 @@ export default function LongJumpGame() {
         }
         .animate-flash-orange {
             animation: flash-orange 0.6s ease-in-out infinite;
+        }
+        .animate-pop-green {
+            animation: pop-green 0.3s ease-out forwards;
+        }
+
+        @keyframes pop-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         @keyframes pulse-white {
