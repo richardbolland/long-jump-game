@@ -1,25 +1,28 @@
 <!doctype html>
 <html lang="en">
   <head>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-9RYN9QD03L"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-9RYN9QD03L');
-
-</script>
-    
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Long Jump - A Word Game by Richard Bolland</title>
-    <script type="module" crossorigin src="/assets/index-CqIpzued.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BMYlpDOA.css">
-  </head>
+    <title>Long Jump</title>
+    
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            console.log('Unregistering SW:', registration);
+            registration.unregister();
+          }
+        });
+        // Force reload if it's the first time running this cleanup
+        if (!localStorage.getItem('sw_cleaned')) {
+            localStorage.setItem('sw_cleaned', 'true');
+            window.location.reload();
+        }
+      }
+    </script>
+      <script type="module" crossorigin src="/assets/index-B2aEIto6.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-BKP1Zfuc.css">
+    </head>
   <body>
     <div id="root"></div>
   </body>
