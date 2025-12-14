@@ -2,28 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/vite-DoSenUvo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Long Jump</title>
     
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#59AD20" />
+    <link rel="apple-touch-icon" href="/logo192.png">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RYN9QD03L"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            console.log('Unregistering SW:', registration);
-            registration.unregister();
-          }
-        });
-        // Force reload if it's the first time running this cleanup
-        if (!localStorage.getItem('sw_cleaned')) {
-            localStorage.setItem('sw_cleaned', 'true');
-            window.location.reload();
-        }
-      }
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-9RYN9QD03L');
     </script>
-      <script type="module" crossorigin src="/assets/index-BeRVNpow.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-BKP1Zfuc.css">
-    </head>
+    <script type="module" crossorigin src="/assets/index-4dPPgyO2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DtTswjh8.css">
+  </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
