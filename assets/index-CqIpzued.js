@@ -80,4 +80,4 @@ This typically indicates that your device does not have a healthy Internet conne
         @keyframes pulse-slow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes flash-orange { 0%, 100% { background-color: #f8f5ed; color: black; } 50% { background-color: #f97316; color: white; border-color: #f97316; } }
-      `})]})}eT.createRoot(document.getElementById("root")).render(I.jsx(ze.StrictMode,{children:I.jsx(IM,{})}));"serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js").then(r=>{console.log("SW registered: ",r)}).catch(r=>{console.log("SW registration failed: ",r)})});
+      `})]})}eT.createRoot(document.getElementById("root")).render(I.jsx(ze.StrictMode,{children:I.jsx(IM,{})}));
