@@ -818,32 +818,35 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
          ) : (
            <div className="space-y-1">
              {leaderboard.map((entry, idx) => {
-               // CHANGED: Lower threshold for Maze mode 'Elite' status due to difficulty
-               const threshold = entry.mode === 'maze' ? 30 : 40;
-               const isElite = entry.score >= threshold;
-               
-               let dateDisplay = '';
-               if (view === 'weekly') {
-                   dateDisplay = new Date(entry.date).toLocaleDateString(undefined, {weekday: 'short'});
-               } else if (view === 'monthly') {
-                   dateDisplay = formatDateWithOrdinal(entry.date);
-               }
+  // CHANGED: Strict check for scores above 40 only
+  // This applies to ALL modes (Maze and Standard)
+  const isElite = entry.score > 40; 
+  
+  // Note: If you meant "40 or higher", change the line above to:
+  // const isElite = entry.score >= 40;
 
-               return (
-                <div key={idx} className={`flex justify-between items-center p-2 rounded-lg text-sm transition-all border ${entry.name === highlightName ? `bg-[${theme.accentPrimary}]/10 border-[${theme.accentPrimary}]/20` : (isElite ? 'bg-amber-100 border-amber-300' : 'hover:bg-white/10 border-transparent')}`}
-                     style={entry.name !== highlightName && !isElite ? { borderColor: 'transparent' } : {}}>
-                    <div className="flex items-center gap-2">
-                        <span className={`font-black w-5 text-center ${idx === 0 ? 'text-yellow-600 text-lg' : idx === 1 ? 'text-gray-500 text-base' : idx === 2 ? 'text-orange-700 text-base' : 'text-gray-500'}`}>{idx + 1}</span>
-                        <div className="flex items-center gap-1 overflow-hidden">
-                            {isElite && <Crown size={14} className="text-yellow-600 fill-yellow-600 shrink-0" />}
-                            <span className={`font-bold truncate max-w-[90px] ${entry.name === highlightName ? '' : (isElite ? 'text-amber-900' : '')}`} style={{ color: entry.name === highlightName ? theme.textMain : (isElite ? '#78350f' : theme.textMain) }}>{entry.name}</span>
-                            {dateDisplay && (<span className="text-[9px] font-normal ml-1 border-l pl-1" style={{ color: theme.textSub, borderColor: theme.boardLines }}>{dateDisplay}</span>)}
-                        </div>
-                    </div>
-                    <span className={`font-mono font-black px-2 py-0.5 rounded-md text-xs ${isElite ? 'bg-amber-200 text-amber-900' : 'bg-gray-100 text-gray-900'}`}>{entry.score}m</span>
-                </div>
-               );
-             })}
+  let dateDisplay = '';
+  if (view === 'weekly') {
+      dateDisplay = new Date(entry.date).toLocaleDateString(undefined, {weekday: 'short'});
+  } else if (view === 'monthly') {
+      dateDisplay = formatDateWithOrdinal(entry.date);
+  }
+
+  return (
+   <div key={idx} className={`flex justify-between items-center p-2 rounded-lg text-sm transition-all border ${entry.name === highlightName ? `bg-[${theme.accentPrimary}]/10 border-[${theme.accentPrimary}]/20` : (isElite ? 'bg-amber-100 border-amber-300' : 'hover:bg-white/10 border-transparent')}`}
+        style={entry.name !== highlightName && !isElite ? { borderColor: 'transparent' } : {}}>
+       <div className="flex items-center gap-2">
+           <span className={`font-black w-5 text-center ${idx === 0 ? 'text-yellow-600 text-lg' : idx === 1 ? 'text-gray-500 text-base' : idx === 2 ? 'text-orange-700 text-base' : 'text-gray-500'}`}>{idx + 1}</span>
+           <div className="flex items-center gap-1 overflow-hidden">
+               {isElite && <Crown size={14} className="text-yellow-600 fill-yellow-600 shrink-0" />}
+               <span className={`font-bold truncate max-w-[90px] ${entry.name === highlightName ? '' : (isElite ? 'text-amber-900' : '')}`} style={{ color: entry.name === highlightName ? theme.textMain : (isElite ? '#78350f' : theme.textMain) }}>{entry.name}</span>
+               {dateDisplay && (<span className="text-[9px] font-normal ml-1 border-l pl-1" style={{ color: theme.textSub, borderColor: theme.boardLines }}>{dateDisplay}</span>)}
+           </div>
+       </div>
+       <span className={`font-mono font-black px-2 py-0.5 rounded-md text-xs ${isElite ? 'bg-amber-200 text-amber-900' : 'bg-gray-100 text-gray-900'}`}>{entry.score}m</span>
+   </div>
+  );
+})}
            </div>
          )}
        </div>
@@ -2021,8 +2024,13 @@ export default function App() {
   if (gameState === 'menu') {
     return (
       <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+        <div className="absolute top-4 right-4 z-50">
+            <button onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
+                <Settings size={24} />
+            </button>
+        </div>
         <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
-            <div className="space-y-4 flex flex-col items-center w-full">
+            <div className="space-y-4 flex flex-col items-center w-full mt-6">
                 { <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400">
                     <span>Refreshed Daily</span>
@@ -2054,26 +2062,28 @@ export default function App() {
 
             {/* Buttons Row */}
 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs sm:max-w-md justify-center">
-    <button
-        onClick={() => handleStartGame('standard')}
-        className="flex-1 py-4 rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2 text-white"
-        style={{ backgroundColor: theme.accentPrimary }} 
-    >
-        Play <Play size={20} fill="currentColor" />
-    </button>
+                <button
+                    onClick={() => handleStartGame('standard')}
+                    className="flex-1 py-2 rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2 text-white"
+                    style={{ backgroundColor: theme.accentPrimary }} 
+                >
+                    Play <Play size={20} fill="currentColor" />
+                </button>
 
-    {/* CHANGED: Quick Button to Maze Button */}
-    <button
-        onClick={() => handleStartGame('maze')}
-        className="flex-1 py-4 bg-purple-600 text-white rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2"
-        style={{ backgroundColor: '#9333ea' }}
-    >
-        Maze <span className="text-xs px-1.5 py-0.5 rounded text-purple-100 bg-purple-700">Hard</span>
-    </button>
-</div>
+                <button
+                    onClick={() => handleStartGame('maze')}
+                    className="flex-1 py-2 rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex flex-col items-center justify-center gap-0 text-white"
+                    style={{ backgroundColor: '#d97706' }}
+                >
+                    <span>MAZE MODE</span>
+                    <span className="text-[10px] font-bold text-orange-100/80 tracking-widest">
+                        HARDCORE
+                    </span>
+                </button>
+            </div>
             
             {/* Tip Jar & Attribution */}
-            <div className="flex flex-col items-center gap-3 mt-8 w-full">
+            <div className="flex flex-col items-center gap-3 mt-2 w-full">
                 <div className="flex flex-row items-center justify-center gap-4">
                     <button onClick={() => setShowChangelog(true)} className="group flex items-center gap-2 px-3 py-2 rounded-full font-bold text-xs transition-colors shadow-sm whitespace-nowrap" style={{ backgroundColor: theme.tileLocked, color: theme.textSub }} title="Updates">
                          <ScrollText size={14} />
@@ -2093,6 +2103,38 @@ export default function App() {
             </div>
         </div>
         <div className="hidden lg:block w-full max-w-sm lg:h-[600px] flex-1 self-stretch">
+          {/* SETTINGS MODAL */}
+        {showSettings && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+                <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h3>
+                        <button onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
+                    </div>
+                    <div className="space-y-6">
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Username</label>
+                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Sun size={20} className="text-yellow-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Dark Mode</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                            </div>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Volume2 size={20} className="text-blue-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Sound Effects</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                            </div>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Zap size={20} className="text-orange-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Haptics</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                            </div>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="text-xl">🎉</span><span className="font-bold text-sm" style={{ color: theme.textMain }}>Crowd Fans</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                            </div>
+                        </div>
+                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
+                    </div>
+                </div>
+            </div>
+        )}
             <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
         </div>
 
@@ -2318,6 +2360,10 @@ export default function App() {
                       <p className="flex gap-2"><span className="font-bold" style={{ color: theme.textMain }}>•</span><span>Start in <strong>Column 1</strong> (left).</span></p>
                       <p className="flex gap-2 items-center"><Star size={16} className="text-yellow-500 fill-yellow-500" /><span><strong>Yellow Stars:</strong> Give +1, +2, or +3 random letters.</span></p>
                       <p className="flex gap-2 items-center"><Sparkles size={16} className="text-purple-500 fill-purple-500" /><span><strong>Purple Sparkles:</strong> Give you a blank Wildcard tile!</span></p>
+                      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mt-2">
+                          <p className="text-xs text-yellow-800 font-bold mb-1 flex items-center gap-1"><Zap size={10} fill="currentColor"/> HANDY TIP:</p>
+                          <p className="text-xs text-yellow-800">Stars act like <b>Double Word Scores</b> in Scrabble! If you place a vertical AND horizontal word over a star, you get double the letters.</p>
+                      </div>
                   </div>
                   <button onClick={() => { setShowTutorial(false); setShowRules(false); }} className="w-full py-4 rounded-xl font-black text-white shadow-lg hover:scale-105 transition-all uppercase tracking-widest text-lg" style={{ backgroundColor: theme.accentPrimary }}>{showTutorial ? "Let's Jump!" : "Close"}</button>
               </div>
@@ -2352,122 +2398,38 @@ export default function App() {
       )}
       
       {/* IN-GAME SETTINGS MODAL */}
-      {showSettings && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-                <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+      {/* SETTINGS MODAL */}
+        {showSettings && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+                <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h3>
                         <button onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
                     </div>
-
                     <div className="space-y-6">
-                        {/* Username Input */}
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSub }}>Username</label>
-                            <input 
-                                type="text" 
-                                value={playerName} 
-                                onChange={(e) => setPlayerName(e.target.value)} 
-                                maxLength={12}
-                                className="w-full border px-4 py-3 rounded-xl font-bold outline-none transition-all"
-                                style={{ backgroundColor: theme.settingsBg, borderColor: 'transparent', color: theme.textMain }}
-                            />
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Username</label>
+                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
                         </div>
-
-                        {/* SETTINGS TOGGLES */}
-                        <div className="space-y-3">
-                            {/* Dark Mode */}
-                            <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: theme.settingsBg }}>
-                                <div className="flex items-center gap-3">
-                                    {darkMode ? <Moon size={20} className="text-purple-400" /> : <Sun size={20} className="text-yellow-500" />}
-                                    <span className="font-bold text-sm" style={{ color: theme.textMain }}>Dark Mode</span>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                                </label>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Sun size={20} className="text-yellow-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Dark Mode</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
-
-                            {/* Sound Toggle */}
-                            <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: theme.settingsBg }}>
-                                <div className="flex items-center gap-3">
-                                    {soundEnabled ? <Volume2 size={20} className="text-blue-500" /> : <VolumeX size={20} className="text-gray-400" />}
-                                    <span className="font-bold text-sm" style={{ color: theme.textMain }}>Sound Effects</span>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                                </label>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Volume2 size={20} className="text-blue-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Sound Effects</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
-
-                            {/* Haptics Toggle */}
-                            <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: theme.settingsBg }}>
-                                <div className="flex items-center gap-3">
-                                    {hapticsEnabled ? <Zap size={20} className="text-orange-500 fill-orange-500" /> : <Zap size={20} className="text-gray-400" />}
-                                    <span className="font-bold text-sm" style={{ color: theme.textMain }}>Haptics</span>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                                </label>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Zap size={20} className="text-orange-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Haptics</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
-
-                            {/* Fan Toggle */}
-                            <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: theme.settingsBg }}>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xl">🎉</span>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm" style={{ color: theme.textMain }}>Crowd Fans</span>
-                                    </div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                                </label>
+                            <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="text-xl">🎉</span><span className="font-bold text-sm" style={{ color: theme.textMain }}>Crowd Fans</span></div>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                         </div>
-
-                        {/* Install App Button (PWA) */}
-                        {deferredPrompt && (
-                            <button 
-                                onClick={handleInstallClick}
-                                className="w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm flex items-center justify-center gap-2 text-white"
-                                style={{ backgroundColor: theme.accentPrimary }}
-                            >
-                                <Download size={16} /> Install App
-                            </button>
-                        )}
-
-                        {/* SUGGESTION BOX */}
-                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}>
-                            <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label>
-                            <textarea
-                                value={suggestionText}
-                                onChange={(e) => setSuggestionText(e.target.value)}
-                                className="w-full border px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24"
-                                style={{ backgroundColor: theme.settingsBg, borderColor: 'transparent', color: theme.textMain }}
-                                placeholder="Ideas for new modes, obstacles, or features..."
-                            />
-                            <button
-                                onClick={handleSubmitSuggestion}
-                                disabled={suggestionStatus !== 'idle' || !suggestionText.trim()}
-                                className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm ${
-                                    suggestionStatus === 'success'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed'
-                                }`}
-                            >
-                                {suggestionStatus === 'submitting' ? 'Sending...' : (suggestionStatus === 'success' ? 'Sent! Thanks' : 'Submit Suggestion')}
-                            </button>
-                        </div>
+                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
                     </div>
-
-                    <button onClick={() => setShowSettings(false)} className="w-full mt-6 py-3 font-bold uppercase tracking-widest text-xs hover:opacity-70 transition-all" style={{ color: theme.textSub }}>
-                        Close Settings
-                    </button>
                 </div>
             </div>
-      )}
+        )}
 
       <div className="w-full max-w-6xl px-4 pt-4 landscape:pt-2 pb-1 flex justify-between items-start shrink-0 relative z-50">
         
