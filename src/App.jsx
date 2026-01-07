@@ -1883,73 +1883,86 @@ export default function App() {
   };
 
   const commitMove = (newGrid, newWords) => {
-    // Track played words
-    const justWords = newWords.map(w => w.word);
-    setPlayedWords(prev => [...prev, ...justWords]);
     handleFeedback('success');
     const gridSnapshot = JSON.parse(JSON.stringify(grid));
+    setPlayedWords(prev => [...prev, ...newWords.map(w => w.word)]);
     
-    // Save history with Clean Hand state
-    const cleanHandSnapshot = hand.map(t => ({...t, isPlaced: false}));
-    setHistory(prev => [...prev, { grid: gridSnapshot, hand: cleanHandSnapshot, score: score, drawCount: drawCount }]);
+    // FIXED: Removed 'christmasCells' from the history object here
+    setHistory(prev => [...prev, { grid: gridSnapshot, hand: hand.map(t => ({...t, isPlaced: false})), score, drawCount }]);
     
-    setGrid(newGrid);
-    setCelebrateFans(true);
+    setGrid(newGrid); 
+    setCelebrateFans(true); 
     setTimeout(() => setCelebrateFans(false), 200);
+    
+    let bonus = 0; 
+    let wildcardsEarned = 0; // Counter logic (Kept this as requested)
+    let giftType = null; 
+    
+    // REMOVED: let xmas = false;
 
-    let bonusTilesToAdd = 0;
-    let earnedStar = false; 
     newWords.forEach(w => {
+      // REMOVED: The check for CHRISTMAS_WORDS and setChristmasCells
       w.cells.forEach(wc => {
-        const bonus = getBonusAt(wc.r, wc.c);
-        const isPlacedTile = placedTiles.some(pt => pt.r === wc.r && pt.c === wc.c);
-        if (bonus && isPlacedTile) bonusTilesToAdd += bonus.val;
-        if (starSpots.some(s => s.r === wc.r && s.c === wc.c)) earnedStar = true;
+        const b = getBonusAt(wc.r, wc.c); 
+        const isPlaced = placedTiles.some(pt => pt.r === wc.r && pt.c === wc.c);
+        
+        if (b && isPlaced) { 
+            if (b.type && b.type.startsWith('gift')) giftType = b.type; 
+            else if (b.val) bonus += b.val; 
+        }
+        
+        // This is the Double Wildcard logic you wanted (Accumulative)
+        if (starSpots.some(s => s.r === wc.r && s.c === wc.c)) wildcardsEarned++;
       });
     });
 
-    // Remove Placed tiles permanently
     let nextHand = hand.filter(t => !t.isPlaced);
-
-    if (bonusTilesToAdd > 0) {
-      const lettersToAdd = dailyDeck.slice(drawCount, drawCount + bonusTilesToAdd);
-      const newTiles = lettersToAdd.map(l => createTile(l, true));
-      nextHand = [...nextHand, ...newTiles].sort((a, b) => {
-          if (a.letter !== b.letter) return a.letter.localeCompare(b.letter);
-          return (a.isNew === b.isNew) ? 0 : (a.isNew ? 1 : -1);
-      });
-      setDrawCount(prev => prev + bonusTilesToAdd);
-    }
-
-    if (earnedStar) {
-        const wildTile = createTile('*', true);
-        nextHand = [...nextHand, wildTile].sort((a, b) => {
-            if (a.letter !== b.letter) return a.letter.localeCompare(b.letter);
-            return (a.isNew === b.isNew) ? 0 : (a.isNew ? 1 : -1);
-        });
+    
+    // Add Bonus Letter Tiles
+    if (bonus > 0) { 
+        const newTiles = dailyDeck.slice(drawCount, drawCount + bonus).map(l => createTile(l, true)); 
+        nextHand = [...nextHand, ...newTiles]; 
+        setDrawCount(prev => prev + bonus); 
     }
     
+    // Add Wildcards (Based on the counter)
+    if (wildcardsEarned > 0) {
+        const newWilds = Array(wildcardsEarned).fill(null).map(() => createTile('*', true));
+        nextHand = [...nextHand, ...newWilds];
+    }
+    
+    nextHand.sort((a, b) => a.letter.localeCompare(b.letter)); 
     setHand(nextHand);
 
-    if (bonusTilesToAdd > 0 || earnedStar) {
-        const msg = earnedStar ? "Wildcard Unlocked! + Bonus Tiles!" : `Great! +${bonusTilesToAdd} Bonus Tiles!`;
-        setMessage({ text: msg, type: "success" });
-    } else { setMessage({ text: "Valid move!", type: "success" }); }
-
-    let maxCol = score - 1;
-    const currentCols = grid[0].length;
-    placedTiles.forEach(t => { if (t.c > maxCol) maxCol = t.c; });
-    for(let r=0; r<GRID_ROWS; r++){
-        for(let c=0; c<currentCols; c++){
-            if(newGrid[r] && newGrid[r][c] && c > maxCol) maxCol = c;
-        }
+    // Handle Gifts or Messages
+    if (giftType) { 
+        const pool = dailyDeck.slice(drawCount, drawCount + (giftType === 'gift_large' ? 5 : giftType === 'gift_medium' ? 4 : 3)); 
+        setActiveGiftType(giftType); 
+        setActiveGiftPool(pool); 
+        setSelectedGiftIndices(new Set()); 
+        setTimeout(() => setShowGiftModal(true), 500); 
     }
-    setScore(maxCol + 1);
-    setPlacedTiles([]);
-    setIsValidating(false);
-    setSelectedGridSpot(null);
+    // REMOVED: else if (xmas) check
+    else if (bonus > 0 || wildcardsEarned > 0) {
+        // Updated message to show exact number of wildcards earned
+        const wildcardMsg = wildcardsEarned > 0 ? `${wildcardsEarned} Wildcard${wildcardsEarned > 1 ? 's' : ''} Unlocked!` : '';
+        const bonusMsg = bonus > 0 ? `+${bonus} Tiles!` : '';
+        setMessage({ text: `${wildcardMsg} ${bonusMsg}`, type: "success" });
+    }
+    else { 
+        setMessage({ text: "Valid move!", type: "success" }); 
+    }
+
+    // Update Score (Max Column Reached)
+    let maxCol = score - 1; 
+    placedTiles.forEach(t => { if (t.c > maxCol) maxCol = t.c; });
+    const currentCols = newGrid[0].length;
+    for(let r=0; r<GRID_ROWS; r++) { for(let c=0; c<currentCols; c++) { if(newGrid[r] && newGrid[r][c] && c > maxCol) maxCol = c; } }
     
-    // RESET UNDO FOR NEW TURN
+    setScore(maxCol + 1); 
+    setPlacedTiles([]); 
+    setIsValidating(false); 
+    setSelectedGridSpot(null); 
     setHasUsedUndo(false);
   };
 
@@ -2024,7 +2037,7 @@ export default function App() {
   if (gameState === 'menu') {
     return (
       <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
-        <div className="absolute top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-[60]">
             <button onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
@@ -2032,7 +2045,7 @@ export default function App() {
         <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
             <div className="space-y-4 flex flex-col items-center w-full mt-6">
                 { <RiveLogo /> }
-                <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400">
+                <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
                     <span>Refreshed Daily</span>
                     <Star size={12} className="text-yellow-500 fill-yellow-500 animate-[spin_4s_linear_infinite]" />
                 </div>
@@ -2102,8 +2115,13 @@ export default function App() {
                   <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
             </div>
         </div>
+
+        {/* Desktop Leaderboard (Hidden on Mobile) */}
         <div className="hidden lg:block w-full max-w-sm lg:h-[600px] flex-1 self-stretch">
-          {/* SETTINGS MODAL */}
+             <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
+        </div>
+
+        {/* SETTINGS MODAL (Moved OUTSIDE the hidden div so it works on mobile) */}
         {showSettings && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
                 <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
@@ -2135,8 +2153,8 @@ export default function App() {
                 </div>
             </div>
         )}
-            <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
-        </div>
+      
+  
 
         {/* CHANGELOG MODAL */}
         {showChangelog && (
