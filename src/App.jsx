@@ -7,6 +7,8 @@ import {
 
 // --- RIVE IMPORTS ---
 import { useRive, Layout, Fit, Alignment } from '@rive-app/react-canvas';
+// --- CRAZY GAMES SDK IMPORT ---
+import { initSDK, gameStart, gameStop, happyTime, requestAd, requestRewardAd, getUser, promptLogin } from './CrazyGamesSDK';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
@@ -665,7 +667,8 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
     setLoading(true);
     setError(null);
 
-    const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores');
+    // CRAZY GAMES EXCLUSIVE LEADERBOARD
+    const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores_crazygames');
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
@@ -961,6 +964,9 @@ export default function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [showReviveModal, setShowReviveModal] = useState(false);
+  const [hasShownMidgameAd, setHasShownMidgameAd] = useState(false);
+  const [cgUser, setCgUser] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showRules, setShowRules] = useState(false); 
   const [isFinishing, setIsFinishing] = useState(false);
@@ -994,17 +1000,35 @@ export default function App() {
   useEffect(() => { localStorage.setItem('longJumpHaptics', hapticsEnabled); }, [hapticsEnabled]);
   useEffect(() => { localStorage.setItem('longJumpDarkMode', darkMode); }, [darkMode]);
 
+  // --- INIT SDK & USER ---
   useEffect(() => {
-    const initAuth = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
+      // 1. Initialize CrazyGames SDK (Independent)
+      const initCG = async () => {
+          await initSDK();
+          const crazyUser = await getUser();
+          if (crazyUser) {
+              setCgUser(crazyUser);
+              setPlayerName(crazyUser.username);
+          }
+      };
+      initCG();
+
+      // 2. Initialize Firebase Auth (Independent)
+      const initAuth = async () => {
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+              await signInAnonymously(auth);
+          }
+      };
+      initAuth();
+
+      // Listen for Auth State
+      const unsub = onAuthStateChanged(auth, (u) => {
+          console.log("Firebase Auth State Changed:", u ? "Logged In" : "Logged Out");
+          setUser(u);
+      }); 
+      return () => unsub(); 
   }, []);
 
   useEffect(() => {
@@ -1044,8 +1068,10 @@ export default function App() {
   useEffect(() => {
     const fetchDailyLeader = async () => {
       try {
-        const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores');
+        // CRAZY GAMES EXCLUSIVE LEADERBOARD
+              const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores_crazygames');
         const todayStr = new Date().toISOString().split('T')[0];
+
         
         let constraints = [
             where("date", "==", todayStr), 
@@ -1147,6 +1173,7 @@ export default function App() {
     setShowTutorial(false);
     setShowRules(false);
     setIsSubmittingScore(false);
+    setHasShownMidgameAd(false);
     setShowStartHint(false); 
     setShowExitConfirmation(false);
     setIsReviewingBoard(false);
@@ -1164,11 +1191,22 @@ export default function App() {
     if(scrollContainerRef.current) scrollContainerRef.current.scrollLeft = 0;
   };
 
+const handleCGLogin = async () => {
+      handleFeedback('click');
+      const user = await promptLogin();
+      if (user) {
+          setCgUser(user);
+          setPlayerName(user.username);
+      }
+  };
+
+
   const handleStartGame = (mode) => {
     handleFeedback('click');
     if (!playerName.trim()) setPlayerName(generateRandomName());
     setGameState('playing');
     initGame(mode);
+    gameStart(); // SDK Hook
     setShowTutorial(true);
   };
 
@@ -1382,7 +1420,24 @@ export default function App() {
     }
   }, [selectedGridSpot]);
 
-  const handleRequestSubmit = () => setShowConfirmSubmit(true);
+  const handleRequestSubmit = () => setShowReviveModal(true);
+
+  const handleRevive = () => {
+      requestRewardAd(() => {
+          // Reward: Add 5 random tiles
+          const rewardTiles = dailyDeck.slice(drawCount, drawCount + 5).map(l => createTile(l, true));
+          setHand(prev => [...prev, ...rewardTiles].sort((a, b) => a.letter.localeCompare(b.letter)));
+          setDrawCount(prev => prev + 5);
+          setShowReviveModal(false);
+          setMessage({ text: "Revived! +5 Letters", type: "success" });
+          happyTime();
+      });
+  };
+
+  const handleSkipRevive = () => {
+      setShowReviveModal(false);
+      setShowConfirmSubmit(true);
+  };
 
   const handleConfirmSubmit = async () => {
       setShowConfirmSubmit(false);
@@ -1390,13 +1445,14 @@ export default function App() {
       setIsSubmittingScore(true);
       
       handleFeedback('fanfare');
+      happyTime(); // SDK Hook: Win/End run
 
       const isTestUser = playerName.trim().toLowerCase() === 'test';
 
       if (user && !isTestUser) { 
           try {
               const todayStr = new Date().toISOString().split('T')[0];
-              const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores');
+              const scoresRef = collection(db, 'artifacts', dbAppId, 'public', 'data', 'scores_crazygames');
               await addDoc(scoresRef, {
                   name: playerName || "Anonymous",
                   score: score,
@@ -1406,6 +1462,7 @@ export default function App() {
                   userId: user.uid
               });
               setLastSubmitTime(Date.now());
+              console.log("✅ SUCCESS: Score saved to 'scores_crazygames'!");
           } catch (e) { console.error("Error saving score:", e); }
       }
 
@@ -1417,13 +1474,20 @@ export default function App() {
       const minTime = 2500;
       setTimeout(() => {
           setGameState('gameOver');
+          gameStop(); // SDK Hook
           setIsFinishing(false);
       }, Math.max(animationTime, minTime));
   };
 
   const handleCancelSubmit = () => setShowConfirmSubmit(false);
   const handleLogoClick = () => gameState === 'playing' ? setShowExitConfirmation(true) : setGameState('menu');
-  const confirmExit = () => { setShowExitConfirmation(false); setGameState('menu'); initGame(); };
+  const confirmExit = () => { 
+      setShowExitConfirmation(false); 
+      setGameState('menu'); 
+      gameStop(); // SDK Hook
+      initGame(); 
+      setShowRules(false); 
+  };
 
   const handleShareText = async () => {
     const rankText = playerRank ? getOrdinal(playerRank) : "top";
@@ -1944,6 +2008,7 @@ export default function App() {
     }
     // REMOVED: else if (xmas) check
     else if (bonus > 0 || wildcardsEarned > 0) {
+        happyTime(); // SDK Hook
         // Updated message to show exact number of wildcards earned
         const wildcardMsg = wildcardsEarned > 0 ? `${wildcardsEarned} Wildcard${wildcardsEarned > 1 ? 's' : ''} Unlocked!` : '';
         const bonusMsg = bonus > 0 ? `+${bonus} Tiles!` : '';
@@ -1958,6 +2023,11 @@ export default function App() {
     placedTiles.forEach(t => { if (t.c > maxCol) maxCol = t.c; });
     const currentCols = newGrid[0].length;
     for(let r=0; r<GRID_ROWS; r++) { for(let c=0; c<currentCols; c++) { if(newGrid[r] && newGrid[r][c] && c > maxCol) maxCol = c; } }
+      // TRIGGER MIDGAME AD @ 25m
+    if ((maxCol + 1) >= 25 && !hasShownMidgameAd) {
+        setHasShownMidgameAd(true);
+        requestAd('midgame');
+    }
     
     setScore(maxCol + 1); 
     setPlacedTiles([]); 
@@ -1991,43 +2061,60 @@ export default function App() {
 
   const HandTile = ({ letter }) => {
       const tiles = groupedHand[letter] || [];
-      const availableTiles = tiles.filter(t => !t.isPlaced);
-      const visualCount = Math.min(availableTiles.length, 15);
-      const topTile = availableTiles[availableTiles.length - 1]; 
+      const available = tiles.filter(t => !t.isPlaced);
+      const visualCount = Math.min(available.length, 15);
+      const top = available[available.length - 1]; 
 
       if (tiles.length > 0 && visualCount === 0) {
-          return <div className="w-10 h-10 rounded-lg border-2 border-dashed" style={{ backgroundColor: theme.boardBackground + '40', borderColor: theme.boardLines }} />;
+          // UPDATED: Smaller placeholder on mobile
+          return <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-dashed opacity-30" style={{ borderColor: theme.textSub }} />;
       }
       if (visualCount === 0) return null;
 
-      const isSelected = topTile && selectedTileId === topTile.id;
-      const stackOffset = 6; 
-      const containerHeight = 40 + (visualCount > 1 ? (visualCount - 1) * stackOffset : 0);
-
+      const isSelected = top && selectedTileId === top.id;
+      const stackOffset = 8; 
+      
       return (
-          <div className="relative w-10 flex items-end" style={{ height: `${containerHeight}px` }}>
+          // UPDATED: Smaller width on mobile. Removed inline height calculation.
+          <div className="relative w-8 md:w-10 flex items-end transition-all duration-300">
+              
               {[...Array(visualCount - 1)].map((_, i) => {
-                  const seed = letter.charCodeAt(0) + i;
-                  const rotation = (seed % 7 - 3);
+                  const rotation = ((letter.charCodeAt(0) + i) % 7) - 3;
                   return (
-                    <div key={i} className="absolute w-10 h-10 rounded-lg border transition-all shadow-md" style={{ backgroundColor: '#e5e7eb', borderColor: 'rgba(0,0,0,0.1)', bottom: `${i * stackOffset}px`, zIndex: i, transform: `rotate(${rotation}deg)` }} />
+                    // UPDATED: Smaller tiles in stack on mobile
+                    <div key={i} className="absolute w-8 h-8 md:w-10 md:h-10 rounded-lg border shadow-sm bg-white" 
+                         style={{ 
+                             borderColor: 'rgba(0,0,0,0.1)', 
+                             bottom: `${i * stackOffset}px`, 
+                             zIndex: i, 
+                             transform: `rotate(${rotation}deg)` 
+                         }} 
+                    />
                   );
               })}
+              
               <button
                 draggable={!isFinishing && gameState === 'playing'}
-                onDragStart={(e) => handleDragStart(e, { type: 'hand', tile: topTile })}
-                onClick={() => handleHandClick(topTile.id)}
-                className={`absolute w-10 h-10 rounded-lg flex items-center justify-center text-2xl font-bold font-mono shadow-[0_4px_6px_rgba(0,0,0,0.3)] transition-all ${gameState === 'playing' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
+                onDragStart={(e) => handleDragStart(e, { type: 'hand', tile: top })}
+                onClick={(e) => { e.stopPropagation(); handleHandClick(top.id); }}
+                // UPDATED: Smaller button, smaller font, 'relative' positioning
+                className={`relative w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-lg md:text-2xl font-bold font-mono shadow-[0_4px_6px_rgba(0,0,0,0.15)] transition-all 
+                    ${gameState === 'playing' ? 'cursor-grab active:cursor-grabbing hover:-translate-y-1' : 'cursor-default'}
+                `}
                 style={{
-                    bottom: `${(visualCount - 1) * stackOffset}px`,
-                    zIndex: visualCount,
-                    backgroundColor: isSelected ? theme.accentPrimary : (letter === '*' ? theme.tileTemp : 'white'),
+                    // UPDATED: Use marginBottom to create space for the stack
+                    marginBottom: `${(visualCount - 1) * stackOffset}px`,
+                    zIndex: visualCount + 10,
+                    backgroundColor: isSelected ? theme.accentPrimary : (letter === '*' ? theme.tileTemp : '#ffffff'),
                     color: isSelected ? 'white' : '#1f2937',
+                    border: '1px solid rgba(0,0,0,0.1)',
                     transform: isSelected ? 'translateY(-12px) rotate(0deg)' : `translateY(0) rotate(${isSelected ? 0 : (letter.charCodeAt(0) % 5 - 2)}deg)`
                 }}
               >
-                  {topTile && topTile.isNew && <div className="absolute -top-3 -right-2 bg-green-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm z-50 tracking-tighter">NEW</div>}
-                  {letter === '*' ? <Sparkles size={20} fill={theme.starPurple} className="text-purple-500" /> : letter}
+                  {/* UPDATED: Smaller and repositioned "NEW" badge */}
+                  {top.isNew && <div className="absolute -top-1 -right-1 md:-top-2 md:-right-1 bg-green-600 text-white text-[6px] md:text-[7px] font-black px-1 py-0.5 rounded shadow-sm z-50 tracking-tighter leading-none">NEW</div>}
+                  {/* UPDATED: Smaller wildcard icon */}
+                  {letter === '*' ? <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill={theme.starPurple} /> : letter}
               </button>
           </div>
       );
@@ -2043,7 +2130,7 @@ export default function App() {
             </button>
         </div>
         <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
-            <div className="space-y-4 flex flex-col items-center w-full mt-6">
+            <div className="space-y-4 flex flex-col items-center w-full mt-0 lg:mt-24">
                 { <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
                     <span>Refreshed Daily</span>
@@ -2058,19 +2145,32 @@ export default function App() {
                 </div>
             </div>
 
-            <div className="w-full max-w-xs space-y-2 group">
-                <label className="block text-xs font-bold tracking-widest uppercase text-left pl-1 transition-colors" style={{ color: theme.textSub }}>Enter your name</label>
-                <input 
-                    type="text" 
-                    value={playerName} 
-                    onChange={(e) => setPlayerName(e.target.value)} 
-                    placeholder="Player 1" 
-                    maxLength={12} 
-                    className="w-full border-2 border-transparent outline-none px-6 py-4 rounded-2xl text-2xl font-bold text-center shadow-sm transition-all" 
-                    style={{ backgroundColor: theme.modalBg, color: theme.textMain, borderColor: 'transparent' }} 
-                    onFocus={(e) => e.target.style.borderColor = theme.accentPrimary} 
-                    onBlur={(e) => e.target.style.borderColor = 'transparent'} 
-                />
+            <div className="w-full max-w-xs space-y-4">
+                {cgUser ? (
+                    // LOGGED IN STATE
+                    <div className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all animate-fade-in" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentPrimary }}>
+                        <img src={cgUser.profilePictureUrl} alt="Avatar" className="w-12 h-12 rounded-full border-2 shadow-sm" style={{ borderColor: theme.boardLines }} />
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: theme.textSub }}>Logged in as</span>
+                            <span className="text-xl font-black" style={{ color: theme.textMain }}>{cgUser.username}</span>
+                        </div>
+                    </div>
+                ) : (
+                    // GUEST STATE (Manual Input + Login Button)
+                    <div className="space-y-3">
+                        <div className="group">
+                            <label className="block text-xs font-bold tracking-widest uppercase text-left pl-1 mb-1 transition-colors" style={{ color: theme.textSub }}>Guest Name</label>
+                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="Player 1" maxLength={12} className="w-full border-2 border-transparent outline-none px-6 py-3 rounded-2xl text-xl font-bold text-center shadow-sm transition-all" style={{ backgroundColor: theme.modalBg, color: theme.textMain, borderColor: 'transparent' }} onFocus={(e) => e.target.style.borderColor = theme.accentPrimary} onBlur={(e) => e.target.style.borderColor = 'transparent'} />
+                        </div>
+                        <div className="relative flex items-center justify-center">
+                            <div className="border-t w-full absolute" style={{ borderColor: theme.boardLines }}></div>
+                            <span className="bg-transparent px-2 text-[10px] font-bold uppercase z-10 relative" style={{ color: theme.textSub, backgroundColor: theme.background }}>OR</span>
+                        </div>
+                        <button onClick={handleCGLogin} className="w-full py-3 rounded-xl font-bold text-sm text-white shadow-md hover:scale-105 transition-transform flex items-center justify-center gap-2" style={{ backgroundColor: '#6b21a8' }}>
+                            Login with CrazyGames
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Buttons Row */}
@@ -2148,7 +2248,21 @@ export default function App() {
                                 <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                         </div>
-                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
+                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}>
+                          <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label>
+                          <textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} 
+                            className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" 
+                            style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} 
+                              disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} 
+                              className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}
+                          >Submit Suggestion</button></div>
+                        
+                        {/* PRIVACY POLICY LINK */}
+                        <div className="flex justify-center pt-2">
+                            <a href="https://www.richardbolland.co.za/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[10px] opacity-50 hover:opacity-100 font-bold uppercase tracking-widest transition-opacity" style={{ color: theme.textSub }}>
+                                Privacy Policy
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2200,7 +2314,7 @@ export default function App() {
 
   // --- GAME RENDER ---
   return (
-    <div className="h-[100dvh] w-full landscape:h-screen landscape:w-screen landscape:overflow-hidden font-sans flex flex-col items-center overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+    <div className="fixed inset-0 w-full h-full font-sans flex flex-col items-center overflow-hidden touch-none select-none transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
       {gameState === 'gameOver' && !isReviewingBoard && (
           <div className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-start lg:justify-center p-6 gap-6 lg:gap-12 overflow-y-auto animate-fade-in pt-20 lg:pt-6">
               <Confetti theme={theme} />
@@ -2402,6 +2516,28 @@ export default function App() {
           </div>
       )}
 
+      {/* REVIVE MODAL */}
+      {showReviveModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center bg-white" style={{ borderColor: theme.boardLines }}>
+                  <div className="flex justify-center mb-4"><div className="bg-purple-100 p-3 rounded-full"><Play size={32} className="text-purple-600" /></div></div>
+                  <h3 className="text-xl font-black mb-2 text-gray-900">Need a boost?</h3>
+                  <p className="mb-6 text-sm text-gray-600">Watch a short video to get <strong>+5 Extra Letters</strong> and continue your run!</p>
+                  <div className="flex flex-col gap-3">
+                      <button onClick={handleRevive} className="w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2">
+                          <Play size={16} fill="currentColor"/> Watch Ad (+5 Letters)
+                      </button>
+                      <button onClick={handleSkipRevive} className="w-full py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">
+                          No thanks, end run
+                      </button>
+                      <button onClick={() => setShowReviveModal(false)} className="w-full py-2 rounded-xl font-bold text-gray-400 hover:text-gray-600 transition-colors text-xs uppercase tracking-widest">
+                          Return to Game
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
       {showConfirmSubmit && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
               <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
@@ -2449,66 +2585,87 @@ export default function App() {
             </div>
         )}
 
-      <div className="w-full max-w-6xl px-4 pt-4 landscape:pt-2 pb-1 flex justify-between items-start shrink-0 relative z-50">
+      {/* 1. HEADER */}
+      <div className="w-full max-w-6xl px-4 pt-4 landscape:pt-2 pb-1 relative z-50">
         
-        {/* Left: Date & Leader */}
-        <div className="flex flex-col items-start"> 
-           <div className="hidden md:block text-sm font-bold tracking-widest" style={{ color: theme.textSub }}>
-             {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
-           </div>
-           
-           {dailyLeader && (
-               <div className="hidden md:flex items-center gap-2 mt-1 text-[10px] animate-fade-in whitespace-nowrap">
-                   <span className="font-bold uppercase tracking-widest" style={{ color: theme.textSub }}>
-                       {gameMode === 'quick' ? 'Quick Leader' : 'Standard Leader'}
-                   </span>
-                   <Crown size={12} className="text-yellow-500 fill-yellow-500" />
-                   <span className="font-bold" style={{ color: theme.textMain }}>{dailyLeader.name}</span>
-                   <span className="font-mono" style={{ color: theme.textSub }}>{dailyLeader.score}m</span>
-               </div>
-           )}
-
-           <div className="block md:hidden">
-             {score > 0 && gameState === 'playing' && (
-                <button 
-                   onClick={handleRequestSubmit} 
-                   disabled={isFinishing || isValidating} 
-                   className="px-4 py-1 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" 
-                   style={{ backgroundColor: '#111827', color: 'white' }}
-                >
-                   END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} />
-                </button>
-             )}
-             {gameState === 'gameOver' && isReviewingBoard && (
-                <button 
-                   onClick={() => setIsReviewingBoard(false)} 
-                   className="px-4 py-1 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" 
-                   style={{ backgroundColor: theme.accentPrimary, color: 'white' }}
-                >
-                   <ArrowLeft size={12} /> RESULTS
-                </button>
-             )}
-           </div>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-            <div className="hidden md:block w-64 cursor-pointer hover:opacity-80 transition-opacity mb-2" onClick={handleLogoClick}><RiveLogo /></div>
-            <div className="hidden md:block mt-6">
+        {/* --- MOBILE LAYOUT (2 Columns) --- */}
+        <div className="flex md:hidden justify-between items-start w-full">
+            
+            {/* LEFT COLUMN: Logo + Action Button */}
+            <div className="flex flex-col gap-2 items-start">
+                <div className="w-32 cursor-pointer active:scale-95 transition-transform mb-6" onClick={handleLogoClick}>
+                    <RiveLogo />
+                </div>
+                
+                {/* End Run / Back Button */}
                 {gameState === 'playing' && score > 0 && (
-                    <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: '#111827' }}>END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} /></button>
+                    <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="h-9 px-3 rounded-lg bg-[#111827] text-white flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm border border-gray-800 animate-fade-in">
+                        <span className="text-[10px] font-black uppercase tracking-wider">End Run</span> <Trophy size={12} className="text-yellow-400" />
+                    </button>
                 )}
                 {gameState === 'gameOver' && isReviewingBoard && (
-                    <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentPrimary }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
+                     <button onClick={() => setIsReviewingBoard(false)} className="h-9 px-3 rounded-lg bg-[#59AD20] text-white flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm animate-fade-in">
+                        <ArrowLeft size={14} /> <span className="text-[10px] font-black uppercase tracking-wider">Results</span>
+                    </button>
                 )}
             </div>
+
+            {/* RIGHT COLUMN: Score + Icons */}
+            <div className="flex flex-col items-end gap-1">
+                {/* Name & Score */}
+                <div className="flex flex-col items-end">
+                     <span className="text-[10px] font-bold tracking-widest uppercase opacity-80" style={{ color: theme.accentPrimary }}>{playerName || "PLAYER 1"}</span>
+                     <div className="flex items-center gap-1 font-black text-xl leading-none" style={{ color: theme.accentPrimary }}>
+                        <Ruler size={18} /> {displayScore}m
+                     </div>
+                </div>
+                
+                {/* Horizontal Icon Stack */}
+                <div className="flex gap-2 mt-1">
+                    <button onClick={() => setShowRules(true)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-black/5 text-gray-500 active:bg-black/10 active:scale-95 transition-all shadow-sm" style={{ color: theme.textSub }}>
+                        <Info size={20} />
+                    </button>
+                    <button onClick={() => setShowSettings(true)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-black/5 text-gray-500 active:bg-black/10 active:scale-95 transition-all shadow-sm" style={{ color: theme.textSub }}>
+                        <Settings size={20} />
+                    </button>
+                    <button onClick={() => setShowExitConfirmation(true)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-500 active:bg-red-100 active:scale-95 transition-all shadow-sm border border-red-100">
+                        <LogOut size={20} />
+                    </button>
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col items-end w-32 gap-1">
-              <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentPrimary }}>{playerName || "PLAYER 1"}</span>
-              <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentPrimary }}><Ruler size={16} /> {displayScore}m</div>
-              <div className="flex gap-2">
-                  <button onClick={() => setShowRules(true)} className="text-[10px] font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
-                  <button onClick={() => setShowSettings(true)} className="hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
-              </div>
+
+        {/* --- DESKTOP LAYOUT (Original 3-Column) --- */}
+        <div className="hidden md:flex justify-between items-start w-full">
+             {/* Left: Date */}
+             <div className="flex flex-col items-start w-32"> 
+                <div className="text-[10px] md:text-xs font-bold tracking-widest uppercase opacity-60" style={{ color: theme.textSub }}>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}</div>
+                {dailyLeader && (<div className="flex items-center gap-1 mt-0.5 text-[10px] animate-fade-in whitespace-nowrap"><Crown size={10} className="text-yellow-500 fill-yellow-500" /><span className="font-bold opacity-80" style={{ color: theme.textSub }}>LEADER</span><span className="font-bold truncate max-w-[80px]" style={{ color: theme.textMain }}>{dailyLeader.name}</span><span className="font-mono opacity-60" style={{ color: theme.textSub }}>{dailyLeader.score}m</span></div>)}
+             </div>
+
+             {/* Center: Logo & Button */}
+             <div className="flex flex-col items-center flex-1 -mt-2">
+                <div className="w-64 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleLogoClick}><RiveLogo /></div>
+                <div className="mt-2">
+                    {gameState === 'playing' && score > 0 && (
+                        <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: '#111827' }}>END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} /></button>
+                    )}
+                    {gameState === 'gameOver' && isReviewingBoard && (
+                        <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentPrimary }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
+                    )}
+                </div>
+             </div>
+
+             {/* Right: Controls */}
+             <div className="flex flex-col items-end w-32 gap-1">
+                  <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentPrimary }}>{playerName || "PLAYER 1"}</span>
+                  <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentPrimary }}><Ruler size={16} /> {displayScore}m</div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowRules(true)} className="text-[10px] font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1 opacity-50 hover:opacity-100" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
+                    <button onClick={() => setShowExitConfirmation(true)} className="hover:opacity-70 opacity-50 hover:opacity-100" style={{ color: theme.textSub }} title="Exit Game"><LogOut size={14} /></button>
+                    <button onClick={() => setShowSettings(true)} className="hover:opacity-70 opacity-50 hover:opacity-100" style={{ color: theme.textSub }}><Settings size={14} /></button>
+                  </div>
+             </div>
         </div>
       </div>
 
@@ -2629,8 +2786,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="w-full max-w-4xl px-4 pb-4 md:pb-10 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">
-        <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
+      <div className="w-full max-w-4xl px-4 pb-2 md:pb-6 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">        <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
             <div className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
                 <span>{isValidating ? "Checking..." : message.text}</span>
                 {message.type === 'error' && message.invalidWord && (
@@ -2657,14 +2813,27 @@ export default function App() {
                 )}
             </div>
         </div>
-        <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center gap-4 p-4 rounded-2xl shadow-inner min-h-[140px] md:min-h-[160px] w-full transition-colors" style={{ backgroundColor: theme.handBg }}>
+        <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center p-2 md:p-3 rounded-2xl shadow-inner w-full transition-colors border-4 border-white/40 backdrop-blur-sm" style={{ backgroundColor: theme.handBg }}>
            {uniqueLetters.length === 0 && <div className="italic" style={{ color: theme.textSub }}>Empty Hand</div>}
-           {uniqueLetters.length < 6 ? (<div className="flex gap-3 flex-wrap justify-center items-end">{uniqueLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div>) : (<div className="flex flex-col gap-2 w-full items-center"><div className="flex gap-3 flex-wrap justify-center items-end">{topRowLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div><div className="flex gap-3 flex-wrap justify-center items-end">{bottomRowLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div></div>)}
+           
+           {/* ROW 1: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
+                        {/* UPDATED: w-fit + mx-auto to center content, max-w-full to allow scroll when overflowing */}
+                        <div className="w-fit max-w-full md:w-auto mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center gap-2 md:gap-3 px-1 md:px-0 no-scrollbar">
+                            {topRowLetters.map(l => <HandTile key={l} letter={l} />)}
+                        </div>
+
+                        {/* ROW 2: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
+                        {bottomRowLetters.length > 0 && (
+                            <div className="w-fit max-w-full md:w-auto mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center gap-2 md:gap-3 mt-1 md:mt-[-5px] px-1 md:px-0 no-scrollbar">
+                                {bottomRowLetters.map(l => <HandTile key={l} letter={l} />)}
+                            </div>
+                        )}
         </div>
       </div>
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
+        html, body { overflow: hidden; height: 100%; width: 100%; margin: 0; padding: 0; overscroll-behavior: none; }
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.1); border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(0,0,0,0.2); }
