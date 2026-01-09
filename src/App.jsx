@@ -2123,13 +2123,13 @@ const handleCGLogin = async () => {
   // --- MENU RENDER ---
   if (gameState === 'menu') {
     return (
-      <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+      <div className="fixed inset-0 z-50 font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
             <button onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
         </div>
-        <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
+        <div className="w-full max-w-md flex flex-col items-center text-center space-y-12 animate-fade-in justify-center relative lg:flex-1 lg:h-[600px] lg:self-stretch">
             <div className="space-y-4 flex flex-col items-center w-full mt-0 lg:mt-24">
                 { <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
@@ -2589,7 +2589,7 @@ const handleCGLogin = async () => {
       <div className="w-full max-w-6xl px-4 pt-4 landscape:pt-2 pb-1 relative z-50">
         
         {/* --- MOBILE LAYOUT (2 Columns) --- */}
-        <div className="flex md:hidden justify-between items-start w-full">
+        <div className="flex lg:hidden justify-between items-start w-full">
             
             {/* LEFT COLUMN: Logo + Action Button */}
             <div className="flex flex-col gap-2 items-start">
@@ -2636,7 +2636,7 @@ const handleCGLogin = async () => {
         </div>
 
         {/* --- DESKTOP LAYOUT (Original 3-Column) --- */}
-        <div className="hidden md:flex justify-between items-start w-full">
+        <div className="hidden lg:flex justify-between items-start w-full">
              {/* Left: Date */}
              <div className="flex flex-col items-start w-32"> 
                 <div className="text-[10px] md:text-xs font-bold tracking-widest uppercase opacity-60" style={{ color: theme.textSub }}>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}</div>
