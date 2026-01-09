@@ -2123,13 +2123,13 @@ const handleCGLogin = async () => {
   // --- MENU RENDER ---
   if (gameState === 'menu') {
     return (
-      <div className="fixed inset-0 z-50 font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+      <div className="fixed inset-0 z-50 font-sans flex flex-col lg:flex-row items-center justify-start lg:justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
             <button onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
         </div>
-        <div className="w-full max-w-md flex flex-col items-center text-center space-y-12 animate-fade-in justify-center relative lg:flex-1 lg:h-[600px] lg:self-stretch">
+        <div className="w-full max-w-md flex flex-col items-center text-center space-y-12 animate-fade-in justify-start pt-0 lg:pt-0 lg:justify-center relative lg:flex-1 lg:h-[600px] lg:self-stretch">
             <div className="space-y-4 flex flex-col items-center w-full mt-0 lg:mt-24">
                 { <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
