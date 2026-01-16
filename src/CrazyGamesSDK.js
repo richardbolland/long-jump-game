@@ -16,6 +16,23 @@ export const initSDK = async () => {
   }
 };
 
+export const attachAuthListener = (callback) => {
+    if (sdk) {
+        // The SDK returns a "removeListener" function, which we return to the caller
+        return sdk.user.addAuthListener(callback);
+    }
+    return () => {}; // Return a dummy cleanup function if SDK isn't ready
+};
+
+// Add these to your existing exports
+export const gameplayStart = () => {
+  if (sdk) sdk.game.gameplayStart();
+};
+
+export const gameplayStop = () => {
+  if (sdk) sdk.game.gameplayStop();
+};
+
 export const gameStart = () => {
   if (sdk) sdk.game.gameplayStart();
 };
@@ -29,6 +46,17 @@ export const happyTime = () => {
 };
 
 export const getUser = async () => {
+    // --- TESTING TOGGLE ---
+    // Set to TRUE to force "Guest Mode" (No user logged in)
+    // Set to FALSE to let the SDK decide (will show "User1" on localhost)
+    const FORCE_GUEST_MODE = false; 
+
+    if (FORCE_GUEST_MODE) {
+        console.log("SDK: Forced Guest Mode for testing");
+        return null; 
+    }
+    // ----------------------
+
     if (sdk) {
         try {
             return await sdk.user.getUser();
@@ -40,14 +68,31 @@ export const getUser = async () => {
     return null;
 };
 
-export const requestAd = (type = 'midgame') => {
+export const requestAd = (type = 'midgame', callbacks = {}) => {
+  const { onAdStarted, onAdFinished, onAdError } = callbacks;
+
   if (sdk) {
     console.log('CG: Requesting Ad:', type);
     sdk.ad.requestAd(type, {
-      adStarted: () => console.log('CG: Ad started'),
-      adFinished: () => console.log('CG: Ad finished'),
-      adError: (error) => console.log('CG: Ad error', error),
+      adStarted: () => {
+        console.log('CG: Ad started');
+        if (onAdStarted) onAdStarted();
+      },
+      adFinished: () => {
+        console.log('CG: Ad finished');
+        if (onAdFinished) onAdFinished();
+      },
+      adError: (error) => {
+        console.log('CG: Ad error', error);
+        // Important: If ad fails, we must still run 'finished' logic to let the user play
+        if (onAdError) onAdError(error);
+        if (onAdFinished) onAdFinished(); 
+      },
     });
+  } else {
+    // Local/Guest Mode: Simulate instant ad completion
+    console.log('CG: Local Mode - Skipping Ad');
+    if (onAdFinished) onAdFinished();
   }
 };
 
