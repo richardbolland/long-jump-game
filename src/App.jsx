@@ -994,6 +994,7 @@ export default function App() {
   const [pendingBlankPlacement, setPendingBlankPlacement] = useState(null); 
   const [user, setUser] = useState(null);
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [reviveCount, setReviveCount] = useState(0);
   const [dailyLeader, setDailyLeader] = useState(null);
   const [dailyPar, setDailyPar] = useState(25); 
   const [finalPlayerStats, setFinalPlayerStats] = useState(null);
@@ -1268,6 +1269,7 @@ setHistory([]);
 setPlayedWords([]);
 setScore(0);
 setDisplayScore(0);
+setReviveCount(0);
 setPlayerRank(null);
 setIsCopied(false); 
 setCelebrateFans(false);
@@ -1591,33 +1593,42 @@ useEffect(() => {
 
 const handleRequestSubmit = () => {
       // 1. Check for profanity
-  if (containsProfanity(playerName)) {
-      setMessage({ text: "Please change your username to submit score.", type: "error" });
-      handleFeedback('error');
-      
-          // 2. TURN ON THE RED ERROR TEXT
-      setNameError(true); 
+      if (containsProfanity(playerName)) {
+          setMessage({ text: "Please change your username to submit score.", type: "error" });
+          handleFeedback('error');
+          setNameError(true);
+          setShowSettings(true);
+          return;
+      }
 
-          // 3. Open Settings
-      setShowSettings(true); 
-      return;
-  }
-
-      // 4. If clean, proceed as normal
-  setShowReviveModal(true);
-};
+      // 2. CHECK REVIVE LIMIT
+      // If they have already used 2 or more revives, skip the offer and go straight to submit.
+      if (reviveCount >= 2) {
+          setMessage({ text: "You can only take this chance twice per game.", type: "info" });
+          handleFeedback('error'); // Subtle audio cue that the "bonus" is denied
+          setShowConfirmSubmit(true); // Skip directly to the Confirm Submit modal
+      } else {
+          // If they still have chances left, offer the revive
+          setShowReviveModal(true);
+      }
+  };
 
 const handleRevive = () => {
-  requestRewardAd(() => {
-          // Reward: Add 5 random tiles
-      const rewardTiles = dailyDeck.slice(drawCount, drawCount + 5).map(l => createTile(l, true));
-      setHand(prev => [...prev, ...rewardTiles].sort((a, b) => a.letter.localeCompare(b.letter)));
-      setDrawCount(prev => prev + 5);
-      setShowReviveModal(false);
-      setMessage({ text: "Revived! +5 Letters", type: "success" });
-      happyTime();
-  });
-};
+    requestRewardAd(() => {
+        // Reward: Add 5 random tiles
+        const rewardTiles = dailyDeck.slice(drawCount, drawCount + 5).map(l => createTile(l, true));
+        setHand(prev => [...prev, ...rewardTiles].sort((a, b) => a.letter.localeCompare(b.letter)));
+        setDrawCount(prev => prev + 5);
+        
+        // --- UPDATE COUNT ---
+        setReviveCount(prev => prev + 1);
+        // --------------------
+
+        setShowReviveModal(false);
+        setMessage({ text: "Revived! +5 Letters", type: "success" });
+        happyTime();
+    });
+  };
 
 const handleSkipRevive = () => {
   setShowReviveModal(false);
@@ -2426,36 +2437,6 @@ if (gameState === 'menu') {
          <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
      </div>
 
-
-     {/* --- DESKTOP: BOTTOM RIGHT END RUN BUTTON --- */}
-      <div className="hidden lg:flex fixed bottom-8 right-8 z-50 flex-col gap-2 items-end">
-          
-          {/* END RUN BUTTON */}
-          {gameState === 'playing' && score > 0 && (
-              <button 
-                  onClick={handleRequestSubmit} 
-                  disabled={isFinishing || isValidating} 
-                  className="px-6 py-3 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 animate-slide-in-right" 
-                  style={{ backgroundColor: '#111827' }} 
-              >
-                  End Run 
-                  <Trophy size={16} style={{ color: THEME_LIGHT.starGold }} />
-              </button>
-          )}
-
-          {/* BACK TO RESULTS (For Game Over Review) */}
-          {gameState === 'gameOver' && isReviewingBoard && (
-              <button 
-                  onClick={() => setIsReviewingBoard(false)} 
-                  className="px-6 py-3 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 animate-slide-in-right" 
-                  style={{ backgroundColor: theme.accentPrimary }}
-              >
-                  <ArrowLeft size={18} /> 
-                  Back to Results
-              </button>
-          )}
-      </div>
-
         {/* SETTINGS MODAL */}
      {showSettings && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
@@ -2796,12 +2777,19 @@ return (
   )}
 
       {/* REVIVE MODAL */}
-{showReviveModal && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-      <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center bg-white" style={{ borderColor: theme.boardLines }}>
-          <div className="flex justify-center mb-4"><div className="bg-purple-100 p-3 rounded-full"><Play size={32} className="text-purple-600" /></div></div>
-          <h3 className="text-xl font-black mb-2 text-gray-900">Need a boost?</h3>
-          <p className="mb-6 text-sm text-gray-600">Watch a short video to get <strong>+5 Extra Letters</strong> and continue your run!</p>
+      {showReviveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+            <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center bg-white" style={{ borderColor: theme.boardLines }}>
+                <div className="flex justify-center mb-4"><div className="bg-purple-100 p-3 rounded-full"><Play size={32} className="text-purple-600" /></div></div>
+                <h3 className="text-xl font-black mb-2 text-gray-900">Need a boost?</h3>
+                
+                {/* UPDATED TEXT WITH COUNT */}
+                <p className="mb-2 text-sm text-gray-600">
+                    Watch a short video to get <strong>+5 Extra Letters</strong> and continue your run!
+                </p>
+                <p className="mb-6 text-xs font-bold text-purple-600 uppercase tracking-widest">
+                    {reviveCount === 0 ? "First Chance (1 of 2)" : "Last Chance (2 of 2)"}
+                </p>
           <div className="flex flex-col gap-3">
               <button onClick={handleRevive} className="w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2">
                   <Play size={16} fill="currentColor"/> Watch Ad (+5 Letters)
@@ -3008,19 +2996,6 @@ return (
 
     {/* --- DESKTOP: BOTTOM RIGHT END RUN BUTTON --- */}
       <div className="hidden lg:flex fixed bottom-8 right-8 z-50 flex-col gap-2 items-end">
-          
-          {/* END RUN BUTTON */}
-          {gameState === 'playing' && score > 0 && (
-              <button 
-                  onClick={handleRequestSubmit} 
-                  disabled={isFinishing || isValidating} 
-                  className="px-6 py-3 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 animate-slide-in-right" 
-                  style={{ backgroundColor: '#111827' }} 
-              >
-                  End Run 
-                  <Trophy size={16} style={{ color: THEME_LIGHT.starGold }} />
-              </button>
-          )}
 
           {/* BACK TO RESULTS (For Game Over Review) */}
           {gameState === 'gameOver' && isReviewingBoard && (
@@ -3151,49 +3126,63 @@ return (
 </div>
 </div>
 </div>
+<div className="w-full max-w-4xl px-4 pb-2 md:pb-6 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">
+    <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
+        <div className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
+            <span>{isValidating ? "Checking..." : message.text}</span>
+            {message.type === 'error' && message.invalidWord && (
+                <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
+                    Report <Flag size={10} />
+                </button>
+            )}
+        </div>
+        <div className="flex gap-2 md:gap-4 items-center flex-wrap justify-center">
+            <button onClick={handleUndoRequest} disabled={isFinishing || history.length === 0 || gameState !== 'playing'} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }} title="Undo last move"><RotateCcw size={16} /></button>
+            
+            {/* --- NEW END RUN BUTTON (Integrated into Main Controls) --- */}
+            {gameState === 'playing' && score > 0 && (
+                <button 
+                    onClick={handleRequestSubmit} 
+                    disabled={isFinishing || isValidating} 
+                    className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50 text-white" 
+                    style={{ backgroundColor: '#111827' }} 
+                    title="End current run"
+                >
+                    End Run <Trophy size={14} style={{ color: THEME_LIGHT.starGold }} />
+                </button>
+            )}
+            {/* -------------------------------------------------------- */}
 
-<div className="w-full max-w-4xl px-4 pb-2 md:pb-6 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">        <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
-    <div className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
-        <span>{isValidating ? "Checking..." : message.text}</span>
-        {message.type === 'error' && message.invalidWord && (
-            <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
-                Report <Flag size={10} />
-            </button>
+            <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
+            <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
+            {placedTiles.length > 0 && (
+                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentPrimary, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
             )}
+            {placedTiles.length > 0 && (
+                <button 
+                    onClick={handleCancelPlacement} 
+                    disabled={isFinishing || gameState !== 'playing'} 
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
+                >
+                    <X size={16} />
+                </button>
+            )}
+        </div>
     </div>
-    <div className="flex gap-2 md:gap-4 items-center flex-wrap justify-center">
-        <button onClick={handleUndoRequest} disabled={isFinishing || history.length === 0 || gameState !== 'playing'} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }} title="Undo last move"><RotateCcw size={16} /></button>
-        <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
-        <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
-        {placedTiles.length > 0 && (
-            <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentPrimary, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
-            )}
-        {placedTiles.length > 0 && (
-            <button 
-                onClick={handleCancelPlacement} 
-                disabled={isFinishing || gameState !== 'playing'} 
-                className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
-            >
-                <X size={16} />
-            </button>
-            )}
-    </div>
-</div>
-<div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center p-2 md:p-3 rounded-2xl shadow-inner w-full transition-colors border-4 border-white/40 backdrop-blur-sm" style={{ backgroundColor: theme.handBg }}>
-   {uniqueLetters.length === 0 && <div className="italic" style={{ color: theme.textSub }}>Empty Hand</div>}
+    <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center p-2 md:p-3 rounded-2xl shadow-inner w-full transition-colors border-4 border-white/40 backdrop-blur-sm" style={{ backgroundColor: theme.handBg }}>
+        {uniqueLetters.length === 0 && <div className="italic" style={{ color: theme.textSub }}>Empty Hand</div>}
 
-           {/* ROW 1: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
-                        {/* UPDATED: w-fit + mx-auto to center content, max-w-full to allow scroll when overflowing */}
-    <div className="w-fit max-w-full md:w-auto mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center gap-2 md:gap-3 px-1 md:px-0 no-scrollbar">
-        {topRowLetters.map(l => <HandTile key={l} letter={l} />)}
+        {/* ROW 1: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
+        <div className="w-fit max-w-full md:w-auto mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center gap-2 md:gap-3 px-1 md:px-0 no-scrollbar">
+            {topRowLetters.map(l => <HandTile key={l} letter={l} />)}
         </div>
 
-                        {/* ROW 2: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
+        {/* ROW 2: Scrollable/No-Wrap on Mobile | Wrapped/Centered on Desktop */}
         {bottomRowLetters.length > 0 && (
             <div className="w-fit max-w-full md:w-auto mx-auto flex flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center gap-2 md:gap-3 mt-1 md:mt-[-5px] px-1 md:px-0 no-scrollbar">
                 {bottomRowLetters.map(l => <HandTile key={l} letter={l} />)}
-                </div>
-                )}
+            </div>
+        )}
     </div>
 </div>
 
