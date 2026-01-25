@@ -1361,19 +1361,11 @@ const handleStartGame = (mode) => {
 };
 
 const handlePlayAgain = () => {
-  handleFeedback('click');
+    handleFeedback('click');
 
-      // Define the reset logic
-  const goBackToMenu = () => {
-      setGameState('menu');
-      initGame('standard'); 
-  };
-
-      // Show Ad -> Then go to Menu
-  requestAd('midgame', {
-      onAdFinished: goBackToMenu,
-      onAdError: goBackToMenu
-  });
+    // Go straight to menu (no ad, no inner function)
+    setGameState('menu');
+    initGame('standard'); 
 };
 
   // --- NEW UNDO UI LOGIC ---
