@@ -620,7 +620,7 @@ import { useRive, Layout, Fit, Alignment } from '@rive-app/react-canvas';
       // Matches the RiveComponent container style exactly
       <div className="w-full max-w-[500px] mx-auto flex justify-center items-center" style={{ aspectRatio: '500/220', padding: '20px 0' }}>
         <img 
-          src="/logo.svg" 
+          src="logo.svg" 
           alt="Long Jump Logo" 
           className="w-full h-full object-contain drop-shadow-sm"
         />
@@ -672,8 +672,8 @@ const Fan = ({ trigger }) => {
   const [fanConfig] = useState(() => {
     // UPDATED: Now picks from 8 different fan variations
     const fans = [
-      '/fan1.svg', '/fan2.svg', '/fan3.svg', '/fan4.svg', 
-      '/fan5.svg', '/fan6.svg', '/fan7.svg', '/fan8.svg'
+      'fan1.svg', 'fan2.svg', 'fan3.svg', 'fan4.svg', 
+      'fan5.svg', 'fan6.svg', 'fan7.svg', 'fan8.svg'
     ];
     return {
       src: fans[Math.floor(Math.random() * fans.length)],
