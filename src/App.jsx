@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Shuffle, ArrowDownAZ, Star, Trophy, RotateCcw, AlertCircle, Check, Play, X, Info,
   ChevronRight, ChevronLeft, Crown, BookOpen, Mail, FileText, Sparkles, Eye, ArrowLeft, Ruler, LogOut, Share2, CheckCheck, Heart, Zap,
-  Settings, ScrollText, Volume2, VolumeX, Moon, Sun, Download, Flag, AlertTriangle
+  Settings, ScrollText, Volume2, VolumeX, Moon, Sun, Download, Flag, AlertTriangle, Cake
 } from 'lucide-react';
 
 // --- RIVE IMPORTS ---
@@ -43,6 +43,7 @@ const THEME_LIGHT = {
   tileObstacle: '#374151',
   accentPrimary: '#59AD20',
   accentSecondary: '#4d961b',
+  accentBirthday: '#be185d',
   textMain: '#1f2937',
   textSub: '#6b7280',
   starGold: '#fbbf24',
@@ -67,6 +68,7 @@ const THEME_DARK = {
   tileObstacle: '#000000',
   accentPrimary: '#65a30d',
   accentSecondary: '#4d7c0f',
+  accentBirthday: '#f9a8d4',
   textMain: '#f9fafb',
   textSub: '#9ca3af',
   starGold: '#fbbf24',
@@ -85,6 +87,33 @@ const GRID_COLS_MAZE = 50;
 const INITIAL_HAND_SIZE_STANDARD = 30;
 const INITIAL_HAND_SIZE_MAZE = 30;
 const CELL_SIZE = 40;
+
+// --- 1ST BIRTHDAY ---
+// First commit was 19 Nov 2025. Deploys are manual, so the badge derives its own
+// copy from the date and retires itself instead of going stale on the live site.
+const BIRTHDAY = new Date(2026, 10, 19);
+const BIRTHDAY_GRACE_DAYS = 14;
+
+const getBirthdayBadge = (now = new Date()) => {
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const days = Math.round((startOfDay(BIRTHDAY) - startOfDay(now)) / 86400000);
+
+  if (days > 1) return `1st Birthday in ${days} Days`;
+  if (days === 1) return '1st Birthday Tomorrow';
+  if (days === 0) return 'Long Jump Is 1 Today';
+  if (days >= -BIRTHDAY_GRACE_DAYS) return 'Long Jump Is 1';
+  return null;
+};
+
+// Dev only: ?bday=YYYY-MM-DD pretends it is that date, so every state of the
+// badge can be eyeballed without touching the clock. Stripped from prod builds.
+const getBirthdayPreviewDate = () => {
+  if (!import.meta.env.DEV) return undefined;
+  const raw = new URLSearchParams(window.location.search).get('bday');
+  if (!raw) return undefined;
+  const d = new Date(`${raw}T00:00:00`);
+  return isNaN(d.getTime()) ? undefined : d;
+};
 
 const LETTER_POOL = {
   A: 9, B: 2, C: 2, D: 4, E: 12, F: 2, G: 3, H: 2, I: 9, J: 1, K: 1, L: 4, M: 2,
@@ -2035,6 +2064,7 @@ export default function App() {
 
   // --- MENU RENDER ---
   if (gameState === 'menu') {
+    const birthdayBadge = getBirthdayBadge(getBirthdayPreviewDate());
     return (
       <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
@@ -2055,6 +2085,13 @@ export default function App() {
                     <div className="text-xs font-bold px-3 py-1 rounded-full border mt-2" style={{ backgroundColor: theme.tileLocked, color: theme.accentSecondary, borderColor: theme.accentPrimary }}>
                         Today's Par: {dailyPar}m
                     </div>
+                    {/* 1ST BIRTHDAY BADGE */}
+                    {birthdayBadge && (
+                        <button onClick={() => setShowChangelog(true)} className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border mt-2 transition-all hover:scale-105" style={{ backgroundColor: theme.tileLocked, color: theme.accentBirthday, borderColor: theme.accentBirthday }}>
+                            <Cake size={12} />
+                            {birthdayBadge}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -2161,6 +2198,22 @@ export default function App() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {/* 1st Birthday */}
+                        <div className="border-l-2 pl-3" style={{ borderColor: theme.accentBirthday }}>
+                           <div className="flex items-center gap-1.5 text-xs font-bold uppercase" style={{ color: theme.accentBirthday }}>
+                               <Cake size={12} />
+                               19 November 2026
+                           </div>
+                           <div className="font-bold" style={{ color: theme.textMain }}>Long Jump Turns 1!</div>
+                           <p className="text-xs" style={{ color: theme.textSub }}>
+                               The first tiles were placed in November 2025. A year of daily jumps later, thank you for playing.
+                           </p>
+                           <ul className="text-[10px] list-disc list-inside mt-1" style={{ color: theme.textSub }}>
+                               <li>Celebrations to come closer to the day</li>
+                               <li>Keep an eye on the menu for the countdown</li>
+                           </ul>
+                       </div>
+
                         {/* v9.10 - Maze Mode Update */}
                         <div className="border-l-2 pl-3" style={{ borderColor: '#D97706' }}>
                            <div className="text-xs font-bold uppercase" style={{ color: '#D97706' }}>v9.10</div>
