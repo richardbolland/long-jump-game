@@ -44,6 +44,7 @@ const THEME_LIGHT = {
   accentPrimary: '#59AD20',
   accentSecondary: '#4d961b',
   accentBirthday: '#be185d',
+  accentBirthdayText: '#ffffff',
   textMain: '#1f2937',
   textSub: '#6b7280',
   starGold: '#fbbf24',
@@ -69,6 +70,7 @@ const THEME_DARK = {
   accentPrimary: '#65a30d',
   accentSecondary: '#4d7c0f',
   accentBirthday: '#f9a8d4',
+  accentBirthdayText: '#1f2937',
   textMain: '#f9fafb',
   textSub: '#9ca3af',
   starGold: '#fbbf24',
@@ -93,16 +95,21 @@ const CELL_SIZE = 40;
 // copy from the date and retires itself instead of going stale on the live site.
 const BIRTHDAY = new Date(2026, 10, 19);
 const BIRTHDAY_GRACE_DAYS = 14;
+const BIRTHDAY_SEEN_KEY = 'longJumpBirthday1Seen';
+const BIRTHDAY_LABEL = BIRTHDAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-const getBirthdayBadge = (now = new Date()) => {
+// 'countdown' teases the date on the menu, 'party' is the celebration itself
+// (day-of plus a grace window so players who miss the exact day still see it),
+// 'over' retires the whole feature.
+const getBirthdayState = (now = new Date()) => {
   const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const days = Math.round((startOfDay(BIRTHDAY) - startOfDay(now)) / 86400000);
 
-  if (days > 1) return `1st Birthday in ${days} Days`;
-  if (days === 1) return '1st Birthday Tomorrow';
-  if (days === 0) return 'Long Jump Is 1 Today';
-  if (days >= -BIRTHDAY_GRACE_DAYS) return 'Long Jump Is 1';
-  return null;
+  if (days > 1) return { phase: 'countdown', badge: `1st Birthday in ${days} Days` };
+  if (days === 1) return { phase: 'countdown', badge: '1st Birthday Tomorrow' };
+  if (days === 0) return { phase: 'party', badge: 'Long Jump Is 1 Today' };
+  if (days >= -BIRTHDAY_GRACE_DAYS) return { phase: 'party', badge: 'Long Jump Is 1' };
+  return { phase: 'over', badge: null };
 };
 
 // Dev only: ?bday=YYYY-MM-DD pretends it is that date, so every state of the
@@ -895,6 +902,8 @@ export default function App() {
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showBirthdayModal, setShowBirthdayModal] = useState(false);
+  const [birthdayShared, setBirthdayShared] = useState(false);
   const [showFans, setShowFans] = useState(() => {
       const saved = localStorage.getItem('longJumpShowFans');
       return saved === null ? true : saved !== 'false';
@@ -1022,6 +1031,41 @@ export default function App() {
   useEffect(() => { localStorage.setItem('longJumpSound', soundEnabled); }, [soundEnabled]);
   useEffect(() => { localStorage.setItem('longJumpHaptics', hapticsEnabled); }, [hapticsEnabled]);
   useEffect(() => { localStorage.setItem('longJumpDarkMode', darkMode); }, [darkMode]);
+
+  // The party fires once per player rather than on every reload.
+  useEffect(() => {
+      if (getBirthdayState(getBirthdayPreviewDate()).phase !== 'party') return;
+      if (localStorage.getItem(BIRTHDAY_SEEN_KEY) === 'true') return;
+      setShowBirthdayModal(true);
+  }, []);
+
+  const dismissBirthdayModal = () => {
+      // Previewing with ?bday= should not burn the flag, so it stays reviewable.
+      if (!getBirthdayPreviewDate()) localStorage.setItem(BIRTHDAY_SEEN_KEY, 'true');
+      setShowBirthdayModal(false);
+  };
+
+  const handleShareBirthday = async () => {
+      const shareString = `Long Jump is 1 year old! A year of daily word jumps. Come celebrate with a jump: https://www.longjump.co.za`;
+      const copyToClipboard = async () => {
+          try {
+              await navigator.clipboard.writeText(shareString);
+              setBirthdayShared(true);
+              setTimeout(() => setBirthdayShared(false), 1500);
+          } catch (e) {}
+      };
+
+      try {
+          if (navigator.share) {
+              await navigator.share({ title: 'Long Jump Turns 1', text: shareString });
+          } else {
+              await copyToClipboard();
+          }
+      } catch (err) {
+          console.error('Failed to copy/share: ', err);
+          await copyToClipboard();
+      }
+  };
 
   useEffect(() => {
     const initAuth = async () => {
@@ -2064,7 +2108,7 @@ export default function App() {
 
   // --- MENU RENDER ---
   if (gameState === 'menu') {
-    const birthdayBadge = getBirthdayBadge(getBirthdayPreviewDate());
+    const birthdayBadge = getBirthdayState(getBirthdayPreviewDate()).badge;
     return (
       <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
@@ -2193,6 +2237,33 @@ export default function App() {
       
   
 
+        {/* 1ST BIRTHDAY MODAL */}
+        {showBirthdayModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <Confetti theme={theme} />
+              <div className="rounded-2xl p-8 pt-14 shadow-2xl max-w-sm w-full text-center border relative z-[111]" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday }}>
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 p-4 rounded-full shadow-xl border-2" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday, color: theme.accentBirthday }}>
+                      <Cake size={32} />
+                  </div>
+                  <div className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.accentBirthday }}>{BIRTHDAY_LABEL}</div>
+                  <div className="text-3xl font-black mt-1 leading-tight" style={{ color: theme.textMain }}>Long Jump Turns 1!</div>
+                  <p className="text-sm mt-3 leading-relaxed" style={{ color: theme.textSub }}>
+                      One year of daily jumps, and you have been part of it. Thank you for every word you have placed.
+                  </p>
+                  <p className="text-sm mt-3 font-bold" style={{ color: theme.textMain }}>
+                      Know someone who would love this? Pass it on.
+                  </p>
+
+                  <button onClick={handleShareBirthday} className="w-full mt-5 py-4 rounded-xl font-bold text-lg uppercase tracking-widest shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: theme.accentBirthday, color: theme.accentBirthdayText }}>
+                      {birthdayShared ? (<><CheckCheck size={20} /> Copied</>) : (<><Share2 size={20} /> Share The News</>)}
+                  </button>
+                  <button onClick={dismissBirthdayModal} className="w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all hover:opacity-80" style={{ backgroundColor: theme.boardLines, color: theme.textMain }}>
+                      Let Me Jump
+                  </button>
+              </div>
+          </div>
+      )}
+
         {/* CHANGELOG MODAL */}
         {showChangelog && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
@@ -2202,15 +2273,15 @@ export default function App() {
                         <div className="border-l-2 pl-3" style={{ borderColor: theme.accentBirthday }}>
                            <div className="flex items-center gap-1.5 text-xs font-bold uppercase" style={{ color: theme.accentBirthday }}>
                                <Cake size={12} />
-                               19 November 2026
+                               {BIRTHDAY_LABEL}
                            </div>
                            <div className="font-bold" style={{ color: theme.textMain }}>Long Jump Turns 1!</div>
                            <p className="text-xs" style={{ color: theme.textSub }}>
                                The first tiles were placed in November 2025. A year of daily jumps later, thank you for playing.
                            </p>
                            <ul className="text-[10px] list-disc list-inside mt-1" style={{ color: theme.textSub }}>
-                               <li>Celebrations to come closer to the day</li>
-                               <li>Keep an eye on the menu for the countdown</li>
+                               <li>A birthday celebration on the day itself</li>
+                               <li>Share the news and bring a friend along</li>
                            </ul>
                        </div>
 
