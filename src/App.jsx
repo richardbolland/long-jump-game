@@ -2119,13 +2119,13 @@ export default function App() {
   if (gameState === 'menu') {
     const birthdayBadge = getBirthdayState(getBirthdayPreviewDate()).badge;
     return (
-      <div role="main" className="min-h-screen w-full font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+      <div role="main" className="min-h-screen w-full font-sans flex flex-col lg:flex-row items-center justify-center p-4 lg:py-10 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
             <button aria-label="Settings" onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
         </div>
-        <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-center lg:self-stretch relative">
+        <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[720px] justify-center shrink-0 flex-1 self-center relative">
             <div className="space-y-4 flex flex-col items-center w-full mt-6">
                 <h1 className="sr-only">Long Jump</h1>{ <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase mt-4" style={{ color: theme.textSub }}>
@@ -2207,7 +2207,7 @@ export default function App() {
         </div>
 
         {/* Desktop Leaderboard (Hidden on Mobile) */}
-        <div className="hidden lg:block w-full max-w-sm lg:h-[600px] flex-1 self-stretch">
+        <div className="hidden lg:block w-full max-w-sm lg:h-[720px] flex-1 self-center">
              <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
         </div>
 
