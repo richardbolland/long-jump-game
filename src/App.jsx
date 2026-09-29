@@ -2756,18 +2756,14 @@ export default function App() {
                 <button onClick={handleUndoRequest} disabled={isFinishing || history.length === 0 || gameState !== 'playing'} className="flex items-center justify-center gap-2 min-h-11 min-w-11 md:min-h-0 px-3 py-2 md:px-4 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }} title="Undo last move"><RotateCcw size={16} /></button>
                 <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 min-h-11 md:min-h-0 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
                 <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 min-h-11 md:min-h-0 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
-                {placedTiles.length > 0 && (
-                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 min-h-11 md:min-h-0 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentButton, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
-                )}
-                {placedTiles.length > 0 && (
+                <button onClick={validateAndCommit} disabled={placedTiles.length === 0 || isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 min-h-11 md:min-h-0 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:translate-y-0 ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentButton, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
                 <button aria-label="Cancel placement" 
                     onClick={handleCancelPlacement} 
-                    disabled={isFinishing || gameState !== 'playing'} 
-                    className="flex items-center justify-center gap-2 min-h-11 min-w-11 md:min-h-0 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
+                    disabled={placedTiles.length === 0 || isFinishing || gameState !== 'playing'} 
+                    className="flex items-center justify-center gap-2 min-h-11 min-w-11 md:min-h-0 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-red-100"
                 >
                     <X size={16} />
                 </button>
-                )}
             </div>
         </div>
         <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center gap-4 p-3 md:p-4 rounded-2xl shadow-inner min-h-[140px] md:min-h-[160px] w-full transition-colors" style={{ backgroundColor: theme.handBg }}>
