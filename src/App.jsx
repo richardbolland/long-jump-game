@@ -1018,7 +1018,6 @@ export default function App() {
   const [dailyPar, setDailyPar] = useState(25); 
   const [finalPlayerStats, setFinalPlayerStats] = useState(null);
   const [playedWords, setPlayedWords] = useState([]);
-  const kPressCount = useRef(0); // For the test mode trigger
   
   // Dictionary and Undo Limit State
   const [missingWords, setMissingWords] = useState(new Set());
@@ -1357,26 +1356,6 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // --- TEST MODE TRIGGER ---
-      if (e.key === 'k' || e.key === 'K') {
-          kPressCount.current += 1;
-          if (kPressCount.current >= 10) {
-              handleFeedback('fanfare');
-              setPlayedWords(["TEST", "MODE", "ACTIVE", "RANDOM", "WORDS", "SHOWN", "HERE", "FOR", "DEBUG", "PURPOSES"]);
-              setScore(42);
-              setDisplayScore(42);
-              // Mock stats so the UI doesn't crash
-              setFinalPlayerStats({ 
-                  gamesPlayed: 10, currentStreak: 5, maxStreak: 10, totalDistance: 420, lastPlayedDate: new Date().toISOString().split('T')[0] 
-              });
-              setGameState('gameOver');
-              kPressCount.current = 0;
-              return;
-          }
-      } else {
-          kPressCount.current = 0; // Reset if they type anything else
-      }
-
       if (gameState !== 'playing' || isFinishing || showRules || showTutorial || showConfirmSubmit || showBlankPicker || showExitConfirmation || showSettings || showReportModal || showUndoModal) return;
 
       if (e.code === 'Space') {
