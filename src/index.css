@@ -5,6 +5,11 @@
    scrolls instead of clipping. */
 @custom-variant short-landscape (@media (orientation: landscape) and (max-height: 500px));
 
+/* A phone held upright and under ~740px tall (iPhone SE and 8, small Androids).
+   There is no room for the crowd below the board as well as the controls, so it
+   is dropped there. Wider windows are left alone. */
+@custom-variant short-screen (@media (max-height: 740px) and (max-width: 600px));
+
 /* Players who ask their OS for less motion get no looping or decorative animation. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
