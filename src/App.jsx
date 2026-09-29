@@ -2618,9 +2618,9 @@ export default function App() {
         <div className="flex flex-col items-end w-32 gap-1">
               <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentText }}>{playerName || "PLAYER 1"}</span>
               <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentText }}><Ruler size={16} /> {displayScore}m</div>
-              <div className="flex gap-2">
-                  <button onClick={() => setShowRules(true)} className="relative before:absolute before:-inset-x-2 before:-inset-y-4 before:content-[''] text-xs font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
-                  <button aria-label="Settings" onClick={() => setShowSettings(true)} className="relative before:absolute before:-inset-x-4 before:-inset-y-4 before:content-[''] hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
+              <div className="flex gap-6">
+                  <button onClick={() => setShowRules(true)} className="relative before:absolute before:-inset-x-2.5 before:-inset-y-4 before:content-[''] text-xs font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
+                  <button aria-label="Settings" onClick={() => setShowSettings(true)} className="relative before:absolute before:-left-3 before:-right-4 before:-inset-y-4 before:content-[''] hover:opacity-70" style={{ color: theme.textSub }}><Settings size={18} /></button>
               </div>
         </div>
       </div>
