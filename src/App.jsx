@@ -43,6 +43,7 @@ const THEME_LIGHT = {
   tileObstacle: '#374151',
   accentPrimary: '#59AD20',
   accentSecondary: '#4d961b',
+  accentButton: '#3a8012',
   accentBirthday: '#be185d',
   accentBirthdayText: '#ffffff',
   textMain: '#1f2937',
@@ -69,6 +70,7 @@ const THEME_DARK = {
   tileObstacle: '#000000',
   accentPrimary: '#65a30d',
   accentSecondary: '#4d7c0f',
+  accentButton: '#3a8012',
   accentBirthday: '#f9a8d4',
   accentBirthdayText: '#1f2937',
   textMain: '#f9fafb',
@@ -582,6 +584,7 @@ const Confetti = ({ theme }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if(!canvas) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const ctx = canvas.getContext('2d');
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -826,27 +829,27 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
          <div className="flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <Crown size={20} className="text-yellow-500" />
-                <h3 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.textSub }}>
+                <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.textSub }}>
                     {view === 'daily' ? 'Today\'s Top' : (view === 'weekly' ? 'Weekly Best' : 'Monthly Best')}
-                </h3>
+                </h2>
              </div>
              <div className="flex rounded-lg p-1" style={{ backgroundColor: theme.boardLines }}>
-                 <button onClick={() => setView('daily')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Daily</button>
-                 <button onClick={() => setView('weekly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Weekly</button>
-                 <button onClick={() => setView('monthly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Monthly</button>
+                 <button aria-pressed={view === 'daily'} onClick={() => setView('daily')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Daily</button>
+                 <button aria-pressed={view === 'weekly'} onClick={() => setView('weekly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Weekly</button>
+                 <button aria-pressed={view === 'monthly'} onClick={() => setView('monthly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Monthly</button>
              </div>
          </div>
 
          <div className="flex justify-center">
              <div className="flex rounded-lg p-1 w-full" style={{ backgroundColor: theme.boardLines }}>
-                 <button onClick={() => setModeFilter('standard')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Standard</button>
+                 <button aria-pressed={modeFilter === 'standard'} onClick={() => setModeFilter('standard')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Standard</button>
                  {/* CHANGED: Quick -> Maze (UI Update) */}
-                 <button onClick={() => setModeFilter('maze')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>Maze Mode</button>
+                 <button aria-pressed={modeFilter === 'maze'} onClick={() => setModeFilter('maze')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>Maze Mode</button>
              </div>
          </div>
        </div>
 
-       <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
+       <div tabIndex={0} role="region" aria-label="Leaderboard scores" className="flex-1 overflow-y-auto no-scrollbar pr-1">
          {loading ? (
            <div className="text-center py-8 text-gray-400 text-sm animate-pulse">Loading...</div>
          ) : leaderboard.length === 0 ? (
@@ -2090,6 +2093,8 @@ export default function App() {
                 draggable={!isFinishing && gameState === 'playing'}
                 onDragStart={(e) => handleDragStart(e, { type: 'hand', tile: topTile })}
                 onClick={() => handleHandClick(topTile.id)}
+                aria-label={letter === '*' ? 'Wildcard tile' : undefined}
+                aria-pressed={isSelected}
                 className={`absolute w-10 h-10 rounded-lg flex items-center justify-center text-2xl font-bold font-mono shadow-[0_4px_6px_rgba(0,0,0,0.3)] transition-all ${gameState === 'playing' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
                 style={{
                     bottom: `${(visualCount - 1) * stackOffset}px`,
@@ -2110,15 +2115,15 @@ export default function App() {
   if (gameState === 'menu') {
     const birthdayBadge = getBirthdayState(getBirthdayPreviewDate()).badge;
     return (
-      <div className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+      <div role="main" className="min-h-screen w-screen font-sans flex flex-col lg:flex-row items-center justify-center p-4 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
-            <button onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
+            <button aria-label="Settings" onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
         </div>
         <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
             <div className="space-y-4 flex flex-col items-center w-full mt-6">
-                { <RiveLogo /> }
+                <h1 className="sr-only">Long Jump</h1>{ <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
                     <span>Refreshed Daily</span>
                     <Star size={12} className="text-yellow-500 fill-yellow-500 animate-[spin_4s_linear_infinite]" />
@@ -2159,7 +2164,7 @@ export default function App() {
                 <button
                     onClick={() => handleStartGame('standard')}
                     className="flex-1 py-2 rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2 text-white"
-                    style={{ backgroundColor: theme.accentPrimary }} 
+                    style={{ backgroundColor: theme.accentButton }} 
                 >
                     Play <Play size={20} fill="currentColor" />
                 </button>
@@ -2204,32 +2209,32 @@ export default function App() {
 
         {/* SETTINGS MODAL (Moved OUTSIDE the hidden div so it works on mobile) */}
         {showSettings && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
                 <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h3>
-                        <button onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
+                        <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
+                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
                     </div>
                     <div className="space-y-6">
                         <div>
                             <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Username</label>
-                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
+                            <input type="text" aria-label="Username" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
                         </div>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Sun size={20} className="text-yellow-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Dark Mode</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Dark mode" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Volume2 size={20} className="text-blue-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Sound Effects</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Sound effects" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Zap size={20} className="text-orange-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Haptics</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Haptics" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="text-xl">🎉</span><span className="font-bold text-sm" style={{ color: theme.textMain }}>Crowd Fans</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Crowd fans" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                         </div>
-                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
+                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea aria-label="Suggestion" value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
                     </div>
                 </div>
             </div>
@@ -2239,7 +2244,7 @@ export default function App() {
 
         {/* 1ST BIRTHDAY MODAL */}
         {showBirthdayModal && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Long Jump turns 1" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <Confetti theme={theme} />
               <div className="rounded-2xl p-8 pt-14 shadow-2xl max-w-sm w-full text-center border relative z-[111]" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday }}>
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 p-4 rounded-full shadow-xl border-2" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday, color: theme.accentBirthday }}>
@@ -2266,7 +2271,7 @@ export default function App() {
 
         {/* CHANGELOG MODAL */}
         {showChangelog && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Updates" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                         {/* 1st Birthday */}
@@ -2324,13 +2329,14 @@ export default function App() {
 
   // --- GAME RENDER ---
   return (
-    <div className="h-[100dvh] w-full landscape:h-screen landscape:w-screen landscape:overflow-hidden font-sans flex flex-col items-center overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+    <div role="main" className="h-[100dvh] w-full landscape:h-screen landscape:w-screen landscape:overflow-hidden font-sans flex flex-col items-center overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+      <h1 className="sr-only">Long Jump</h1>
       {gameState === 'gameOver' && !isReviewingBoard && (
           <div className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-start lg:justify-center p-6 gap-6 lg:gap-12 overflow-y-auto animate-fade-in pt-20 lg:pt-6">
               <Confetti theme={theme} />
               {/* NEW GAME OVER CARD */}
               <div className="backdrop-blur-md p-8 rounded-3xl shadow-2xl text-center border max-w-md w-full flex flex-col relative z-[101]" style={{ backgroundColor: theme.modalBg + 'EE', borderColor: theme.boardLines }}>
-                  <h3 className="text-xl font-black uppercase tracking-widest mb-6" style={{ color: theme.textMain }}>STATISTICS</h3>
+                  <h2 className="text-xl font-black uppercase tracking-widest mb-6" style={{ color: theme.textMain }}>STATISTICS</h2>
                   
                   {/* Stats Grid */}
                   <div className="flex justify-between items-start mb-8 px-1 gap-1">
@@ -2427,9 +2433,9 @@ export default function App() {
       )}
 
       {showBlankPicker && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Pick a letter" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
-                  <h3 className="text-xl font-black mb-4 uppercase" style={{ color: theme.textMain }}>Pick a Letter</h3>
+                  <h2 className="text-xl font-black mb-4 uppercase" style={{ color: theme.textMain }}>Pick a Letter</h2>
                   <div className="grid grid-cols-6 gap-2">
                       {Object.keys(LETTER_POOL).filter(l => l !== '*').map(l => (
                           <button key={l} onClick={() => handleBlankSelection(l)} className="w-10 h-10 rounded-lg font-bold text-xl shadow-sm hover:scale-110 transition-transform border" style={{ backgroundColor: theme.tileTemp, borderColor: theme.tileTempRing, color: theme.textMain }}>{l}</button>
@@ -2442,14 +2448,14 @@ export default function App() {
 
       {/* REPORT CONFIRMATION MODAL */}
       {showReportModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Report missing word" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4">
                       <div className="bg-yellow-100 p-3 rounded-full">
                           <Flag size={32} className="text-yellow-600" />
                       </div>
                   </div>
-                  <h3 className="text-xl font-black mb-2 uppercase" style={{ color: theme.textMain }}>Report Missing Word</h3>
+                  <h2 className="text-xl font-black mb-2 uppercase" style={{ color: theme.textMain }}>Report Missing Word</h2>
                   <p className="mb-4 text-sm font-bold" style={{ color: theme.textMain }}>"{pendingReportWord}"</p>
                   
                   <div className="bg-red-50 p-3 rounded-lg border border-red-100 mb-6 text-left">
@@ -2468,14 +2474,14 @@ export default function App() {
 
       {/* UNDO CONFIRMATION MODAL */}
       {showUndoModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Use undo" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4">
                       <div className="bg-blue-100 p-3 rounded-full">
                           <RotateCcw size={32} className="text-blue-600" />
                       </div>
                   </div>
-                  <h3 className="text-xl font-black mb-2 uppercase" style={{ color: theme.textMain }}>Use Undo?</h3>
+                  <h2 className="text-xl font-black mb-2 uppercase" style={{ color: theme.textMain }}>Use Undo?</h2>
                   <p className="mb-6 text-sm" style={{ color: theme.textSub }}>
                       You can only use Undo <strong style={{ color: theme.accentPrimary }}>once per turn</strong>. <br/><br/>
                       Are you sure you want to go back?
@@ -2489,12 +2495,12 @@ export default function App() {
       )}
 
       {(showTutorial || showRules) && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Game rules" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
               <div className="rounded-2xl p-8 shadow-2xl max-w-md w-full text-center border relative" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="absolute -top-12 left-1/2 -translate-x-1/2 p-4 rounded-full shadow-xl" style={{ backgroundColor: theme.modalBg }}>
                       <BookOpen size={48} style={{ color: theme.accentPrimary }} />
                   </div>
-                  <h3 className="text-2xl font-black mt-8 mb-4 uppercase tracking-tight" style={{ color: theme.textMain }}>Game Rules</h3>
+                  <h2 className="text-2xl font-black mt-8 mb-4 uppercase tracking-tight" style={{ color: theme.textMain }}>Game Rules</h2>
                   <div className="text-left mb-6 text-sm space-y-3" style={{ color: theme.textSub }}>
                       <p className="flex gap-2"><span className="font-bold" style={{ color: theme.textMain }}>•</span><span>This is a <strong>daily seeded game</strong>. Everyone gets the same letters and board - refreshed daily.</span></p>
                       <p className="flex gap-2"><span className="font-bold" style={{ color: theme.textMain }}>•</span><span>Place words <strong>Left to Right</strong> or <strong>Top to Bottom</strong> (Scrabble rules).</span></p>
@@ -2507,16 +2513,16 @@ export default function App() {
                           <p className="text-xs text-yellow-800">Stars act like <b>Double Word Scores</b> in Scrabble! If you place a vertical AND horizontal word over a star, you get double the letters.</p>
                       </div>
                   </div>
-                  <button onClick={() => { setShowTutorial(false); setShowRules(false); }} className="w-full py-4 rounded-xl font-black text-white shadow-lg hover:scale-105 transition-all uppercase tracking-widest text-lg" style={{ backgroundColor: theme.accentPrimary }}>{showTutorial ? "Let's Jump!" : "Close"}</button>
+                  <button onClick={() => { setShowTutorial(false); setShowRules(false); }} className="w-full py-4 rounded-xl font-black text-white shadow-lg hover:scale-105 transition-all uppercase tracking-widest text-lg" style={{ backgroundColor: theme.accentButton }}>{showTutorial ? "Let's Jump!" : "Close"}</button>
               </div>
           </div>
       )}
 
       {showExitConfirmation && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
+          <div role="dialog" aria-modal="true" aria-label="Exit game" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
               <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4"><div className="bg-red-100 p-3 rounded-full"><LogOut size={32} className="text-red-500" /></div></div>
-                  <h3 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Exit Game?</h3>
+                  <h2 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Exit Game?</h2>
                   <p className="mb-8" style={{ color: theme.textSub }}>Are you sure you want to quit? You will lose your current progress.</p>
                   <div className="flex gap-3">
                       <button onClick={() => setShowExitConfirmation(false)} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
@@ -2527,13 +2533,13 @@ export default function App() {
       )}
 
       {showConfirmSubmit && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
+          <div role="dialog" aria-modal="true" aria-label="Submit score" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
               <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
-                  <h3 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Submit Score?</h3>
+                  <h2 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Submit Score?</h2>
                   <p className="mb-8" style={{ color: theme.textSub }}>You reached column <strong style={{ color: theme.accentPrimary }}>{score}</strong>. This will end your current run.</p>
                   <div className="flex gap-3">
                       <button onClick={handleCancelSubmit} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
-                      <button onClick={handleConfirmSubmit} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all" style={{ backgroundColor: theme.accentPrimary }}>Confirm</button>
+                      <button onClick={handleConfirmSubmit} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all" style={{ backgroundColor: theme.accentButton }}>Confirm</button>
                   </div>
               </div>
           </div>
@@ -2542,32 +2548,32 @@ export default function App() {
       {/* IN-GAME SETTINGS MODAL */}
       {/* SETTINGS MODAL */}
         {showSettings && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
                 <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h3>
-                        <button onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
+                        <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
+                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
                     </div>
                     <div className="space-y-6">
                         <div>
                             <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Username</label>
-                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
+                            <input type="text" aria-label="Username" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} className="w-full border-2 px-4 py-3 rounded-xl font-bold outline-none transition-all bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} />
                         </div>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Sun size={20} className="text-yellow-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Dark Mode</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Dark mode" className="sr-only peer" checked={darkMode} onChange={() => setDarkMode(!darkMode)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Volume2 size={20} className="text-blue-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Sound Effects</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Sound effects" className="sr-only peer" checked={soundEnabled} onChange={() => setSoundEnabled(!soundEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><Zap size={20} className="text-orange-500" /><span className="font-bold text-sm" style={{ color: theme.textMain }}>Haptics</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Haptics" className="sr-only peer" checked={hapticsEnabled} onChange={() => setHapticsEnabled(!hapticsEnabled)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                             <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="text-xl">🎉</span><span className="font-bold text-sm" style={{ color: theme.textMain }}>Crowd Fans</span></div>
-                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
+                                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" aria-label="Crowd fans" className="sr-only peer" checked={showFans} onChange={() => setShowFans(!showFans)} /><div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></label>
                             </div>
                         </div>
-                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
+                        <div className="pt-4 border-t" style={{ borderColor: theme.boardLines }}><label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: theme.textSub }}>Make a Suggestion</label><textarea aria-label="Suggestion" value={suggestionText} onChange={(e) => setSuggestionText(e.target.value)} className="w-full border-2 px-4 py-3 rounded-xl font-medium text-sm outline-none transition-all resize-none h-24 bg-gray-50" style={{ borderColor: theme.boardLines, color: theme.textMain }} placeholder="Ideas..." /><button onClick={handleSubmitSuggestion} disabled={suggestionStatus !== 'idle' || !suggestionText.trim()} className={`w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-sm bg-gray-500 text-white`}>Submit Suggestion</button></div>
                     </div>
                 </div>
             </div>
@@ -2607,7 +2613,7 @@ export default function App() {
                 <button 
                    onClick={() => setIsReviewingBoard(false)} 
                    className="px-4 py-1 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" 
-                   style={{ backgroundColor: theme.accentPrimary, color: 'white' }}
+                   style={{ backgroundColor: theme.accentButton, color: 'white' }}
                 >
                    <ArrowLeft size={12} /> RESULTS
                 </button>
@@ -2622,7 +2628,7 @@ export default function App() {
                     <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: '#111827' }}>END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} /></button>
                 )}
                 {gameState === 'gameOver' && isReviewingBoard && (
-                    <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentPrimary }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
+                    <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentButton }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
                 )}
             </div>
         </div>
@@ -2631,7 +2637,7 @@ export default function App() {
               <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentPrimary }}><Ruler size={16} /> {displayScore}m</div>
               <div className="flex gap-2">
                   <button onClick={() => setShowRules(true)} className="text-[10px] font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
-                  <button onClick={() => setShowSettings(true)} className="hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
+                  <button aria-label="Settings" onClick={() => setShowSettings(true)} className="hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
               </div>
         </div>
       </div>
@@ -2755,7 +2761,7 @@ export default function App() {
 
       <div className="w-full max-w-4xl px-4 pb-4 md:pb-10 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">
         <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
-            <div className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
+            <div role="status" aria-live="polite" className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
                 <span>{isValidating ? "Checking..." : message.text}</span>
                 {message.type === 'error' && message.invalidWord && (
                     <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
@@ -2771,7 +2777,7 @@ export default function App() {
                 <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentPrimary, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
                 )}
                 {placedTiles.length > 0 && (
-                <button 
+                <button aria-label="Cancel placement" 
                     onClick={handleCancelPlacement} 
                     disabled={isFinishing || gameState !== 'playing'} 
                     className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
