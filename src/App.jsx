@@ -838,17 +838,17 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
                 </h2>
              </div>
              <div className="flex rounded-lg p-1" style={{ backgroundColor: theme.boardLines }}>
-                 <button aria-pressed={view === 'daily'} style={view === 'daily' ? undefined : { color: theme.textSub }} onClick={() => setView('daily')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Daily</button>
-                 <button aria-pressed={view === 'weekly'} style={view === 'weekly' ? undefined : { color: theme.textSub }} onClick={() => setView('weekly')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Weekly</button>
-                 <button aria-pressed={view === 'monthly'} style={view === 'monthly' ? undefined : { color: theme.textSub }} onClick={() => setView('monthly')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Monthly</button>
+                 <button aria-pressed={view === 'daily'} style={view === 'daily' ? undefined : { color: theme.textSub }} onClick={() => setView('daily')} className={`min-h-11 lg:min-h-8 flex items-center justify-center px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Daily</button>
+                 <button aria-pressed={view === 'weekly'} style={view === 'weekly' ? undefined : { color: theme.textSub }} onClick={() => setView('weekly')} className={`min-h-11 lg:min-h-8 flex items-center justify-center px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Weekly</button>
+                 <button aria-pressed={view === 'monthly'} style={view === 'monthly' ? undefined : { color: theme.textSub }} onClick={() => setView('monthly')} className={`min-h-11 lg:min-h-8 flex items-center justify-center px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Monthly</button>
              </div>
          </div>
 
          <div className="flex justify-center">
              <div className="flex rounded-lg p-1 w-full" style={{ backgroundColor: theme.boardLines }}>
-                 <button aria-pressed={modeFilter === 'standard'} style={modeFilter === 'standard' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('standard')} className={`flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Standard</button>
+                 <button aria-pressed={modeFilter === 'standard'} style={modeFilter === 'standard' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('standard')} className={`min-h-11 lg:min-h-8 flex items-center justify-center flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Standard</button>
                  {/* CHANGED: Quick -> Maze (UI Update) */}
-                 <button aria-pressed={modeFilter === 'maze'} style={modeFilter === 'maze' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('maze')} className={`flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'hover:opacity-70'}`}>Maze Mode</button>
+                 <button aria-pressed={modeFilter === 'maze'} style={modeFilter === 'maze' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('maze')} className={`min-h-11 lg:min-h-8 flex items-center justify-center flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'hover:opacity-70'}`}>Maze Mode</button>
              </div>
          </div>
        </div>
@@ -2100,11 +2100,11 @@ export default function App() {
     return (
       <div role="main" className="min-h-screen w-full font-sans flex flex-col lg:flex-row items-center justify-center p-4 lg:py-10 gap-8 lg:gap-12 overflow-y-auto transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
         <div className="fixed top-4 right-4 z-[60]">
-            <button aria-label="Settings" onClick={() => setShowSettings(true)} className="p-2 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
+            <button aria-label="Settings" onClick={() => setShowSettings(true)} className="p-2.5 rounded-full hover:bg-black/5 transition-colors bg-white/50 backdrop-blur-sm shadow-sm" style={{ color: theme.textSub }}>
                 <Settings size={24} />
             </button>
         </div>
-        <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[720px] justify-center shrink-0 flex-1 self-center relative">
+        <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[760px] justify-center shrink-0 flex-1 self-center relative">
             <div className="space-y-4 flex flex-col items-center w-full mt-6">
                 <h1 className="sr-only">Long Jump</h1>{ <RiveLogo /> }
                 <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase mt-4" style={{ color: theme.textSub }}>
@@ -2119,7 +2119,7 @@ export default function App() {
                     </div>
                     {/* 1ST BIRTHDAY BADGE */}
                     {birthdayBadge && (
-                        <button onClick={() => setShowChangelog(true)} className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border mt-2 transition-all hover:scale-105" style={{ backgroundColor: theme.tileLocked, color: theme.accentBirthday, borderColor: theme.accentBirthday }}>
+                        <button onClick={() => setShowChangelog(true)} className="relative before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border mt-2 transition-all hover:scale-105" style={{ backgroundColor: theme.tileLocked, color: theme.accentBirthday, borderColor: theme.accentBirthday }}>
                             <Cake size={12} />
                             {birthdayBadge}
                         </button>
@@ -2167,12 +2167,12 @@ export default function App() {
             {/* Tip Jar & Attribution */}
             <div className="flex flex-col items-center gap-3 mt-2 w-full">
                 <div className="flex flex-row items-center justify-center gap-4">
-                    <button onClick={() => setShowChangelog(true)} className="group flex items-center gap-2 px-3 py-2 rounded-full font-bold text-xs transition-colors shadow-sm whitespace-nowrap" style={{ backgroundColor: theme.tileLocked, color: theme.textSub }} title="Updates">
+                    <button onClick={() => setShowChangelog(true)} className="group flex items-center justify-center gap-2 px-3 min-h-11 min-w-11 rounded-full font-bold text-xs transition-colors shadow-sm whitespace-nowrap" style={{ backgroundColor: theme.tileLocked, color: theme.textSub }} title="Updates">
                          <ScrollText size={14} />
                     </button>
-                    <a href="https://www.richardbolland.co.za" target="_blank" rel="noopener noreferrer" className="text-xs hover:opacity-80 border-b border-gray-500 transition-colors pb-0.5 whitespace-nowrap" style={{ color: theme.textSub }}>By Richard Bolland</a>
+                    <a href="https://www.richardbolland.co.za" target="_blank" rel="noopener noreferrer" className="text-xs hover:opacity-80 transition-colors whitespace-nowrap py-3.5 -my-3.5 px-1" style={{ color: theme.textSub }}><span className="border-b border-gray-500 pb-0.5">By Richard Bolland</span></a>
                     <span style={{ color: theme.boardLines }}>|</span>
-                    <a href="https://pay.yoco.com/richard-bolland" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full text-pink-700 font-bold text-xs hover:bg-pink-100 transition-colors shadow-sm whitespace-nowrap">
+                    <a href="https://pay.yoco.com/richard-bolland" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 px-4 min-h-11 bg-pink-50 rounded-full text-pink-700 font-bold text-xs hover:bg-pink-100 transition-colors shadow-sm whitespace-nowrap">
                         <Heart size={14} className="fill-pink-600" />
                         <span>Tip Jar</span>
                     </a>
@@ -2186,7 +2186,7 @@ export default function App() {
         </div>
 
         {/* Desktop Leaderboard (Hidden on Mobile) */}
-        <div className="hidden lg:block w-full max-w-sm lg:h-[720px] flex-1 self-center">
+        <div className="hidden lg:block w-full max-w-sm lg:h-[760px] flex-1 self-center">
              <DailyLeaderboard user={user} lastUpdated={lastSubmitTime} initialMode='standard' onParCalculated={handleParUpdate} theme={theme} />
         </div>
 
@@ -2196,7 +2196,7 @@ export default function App() {
                 <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
-                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
+                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70 p-2.5 -m-2.5" style={{ color: theme.textSub }}><X size={24} /></button>
                     </div>
                     <div className="space-y-6">
                         <div>
@@ -2535,7 +2535,7 @@ export default function App() {
                 <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
-                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70" style={{ color: theme.textSub }}><X size={24} /></button>
+                        <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70 p-2.5 -m-2.5" style={{ color: theme.textSub }}><X size={24} /></button>
                     </div>
                     <div className="space-y-6">
                         <div>
@@ -2608,10 +2608,10 @@ export default function App() {
             <div className="hidden md:block w-64 cursor-pointer hover:opacity-80 transition-opacity mb-2" onClick={handleLogoClick}><RiveLogo /></div>
             <div className="hidden md:block mt-6">
                 {gameState === 'playing' && score > 0 && (
-                    <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: '#111827' }}>END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} /></button>
+                    <button onClick={handleRequestSubmit} disabled={isFinishing || isValidating} className="px-4 py-1 min-h-11 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: '#111827' }}>END RUN <Trophy size={10} style={{ color: THEME_LIGHT.starGold }} /></button>
                 )}
                 {gameState === 'gameOver' && isReviewingBoard && (
-                    <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentButton }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
+                    <button onClick={() => setIsReviewingBoard(false)} className="px-4 py-1 min-h-11 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm hover:scale-105 transition-all flex items-center gap-2 animate-fade-in" style={{ backgroundColor: theme.accentButton }}><ArrowLeft size={14} /> BACK TO RESULTS</button>
                 )}
             </div>
         </div>
@@ -2619,8 +2619,8 @@ export default function App() {
               <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentText }}>{playerName || "PLAYER 1"}</span>
               <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentText }}><Ruler size={16} /> {displayScore}m</div>
               <div className="flex gap-2">
-                  <button onClick={() => setShowRules(true)} className="text-xs font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
-                  <button aria-label="Settings" onClick={() => setShowSettings(true)} className="hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
+                  <button onClick={() => setShowRules(true)} className="relative before:absolute before:-inset-x-2 before:-inset-y-4 before:content-[''] text-xs font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
+                  <button aria-label="Settings" onClick={() => setShowSettings(true)} className="relative before:absolute before:-inset-x-4 before:-inset-y-4 before:content-[''] hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
               </div>
         </div>
       </div>
@@ -2742,35 +2742,35 @@ export default function App() {
         </div>
       </div>
 
-      <div className="w-full max-w-4xl px-4 pb-4 md:pb-10 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">
-        <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
-            <div role="status" aria-live="polite" className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
+      <div className="w-full max-w-4xl px-4 pb-3 md:pb-10 landscape:pb-2 flex flex-col items-center shrink-0 relative z-50">
+        <div className="w-full flex flex-col-reverse md:flex-row items-center justify-between gap-2 md:gap-4 mb-1 md:mb-4">
+            <div role="status" aria-live="polite" className={`px-4 py-2 md:py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
                 <span>{isValidating ? "Checking..." : message.text}</span>
                 {message.type === 'error' && message.invalidWord && (
-                    <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-xs uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
+                    <button onClick={() => handleReportRequest(message.invalidWord)} className="relative before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ml-2 px-2 py-0.5 rounded text-xs uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentButton, color: 'white' }}>
                         Report <Flag size={10} />
                     </button>
                 )}
             </div>
             <div className="flex gap-2 md:gap-4 items-center flex-wrap justify-center">
-                <button onClick={handleUndoRequest} disabled={isFinishing || history.length === 0 || gameState !== 'playing'} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }} title="Undo last move"><RotateCcw size={16} /></button>
-                <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
-                <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
+                <button onClick={handleUndoRequest} disabled={isFinishing || history.length === 0 || gameState !== 'playing'} className="flex items-center justify-center gap-2 min-h-11 min-w-11 md:min-h-0 px-3 py-2 md:px-4 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }} title="Undo last move"><RotateCcw size={16} /></button>
+                <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 min-h-11 md:min-h-0 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
+                <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 min-h-11 md:min-h-0 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
                 {placedTiles.length > 0 && (
-                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentButton, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
+                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 min-h-11 md:min-h-0 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentButton, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
                 )}
                 {placedTiles.length > 0 && (
                 <button aria-label="Cancel placement" 
                     onClick={handleCancelPlacement} 
                     disabled={isFinishing || gameState !== 'playing'} 
-                    className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 min-h-11 min-w-11 md:min-h-0 px-3 md:px-4 py-2 md:py-3 bg-red-100 text-red-600 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:bg-red-200 transition-all disabled:opacity-50"
                 >
                     <X size={16} />
                 </button>
                 )}
             </div>
         </div>
-        <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center gap-4 p-4 rounded-2xl shadow-inner min-h-[140px] md:min-h-[160px] w-full transition-colors" style={{ backgroundColor: theme.handBg }}>
+        <div onDragOver={handleDragOver} onDrop={handleDropOnHand} className="flex flex-col items-center justify-center gap-4 p-3 md:p-4 rounded-2xl shadow-inner min-h-[140px] md:min-h-[160px] w-full transition-colors" style={{ backgroundColor: theme.handBg }}>
            {uniqueLetters.length === 0 && <div className="italic" style={{ color: theme.textSub }}>Empty Hand</div>}
            {uniqueLetters.length < 6 ? (<div className="flex gap-3 flex-wrap justify-center items-end">{uniqueLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div>) : (<div className="flex flex-col gap-2 w-full items-center"><div className="flex gap-3 flex-wrap justify-center items-end">{topRowLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div><div className="flex gap-3 flex-wrap justify-center items-end">{bottomRowLetters.map(letter => <HandTile key={letter} letter={letter} />)}</div></div>)}
         </div>
