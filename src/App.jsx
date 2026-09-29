@@ -42,12 +42,14 @@ const THEME_LIGHT = {
   tileWildPlaced: '#fff8c4',
   tileObstacle: '#374151',
   accentPrimary: '#59AD20',
-  accentSecondary: '#4d961b',
+  accentSecondary: '#356b11',
   accentButton: '#3a8012',
+  accentMazeText: '#b45309',
+  accentText: '#356b11',
   accentBirthday: '#be185d',
   accentBirthdayText: '#ffffff',
   textMain: '#1f2937',
-  textSub: '#6b7280',
+  textSub: '#525b68',
   starGold: '#fbbf24',
   starPurple: '#a855f7',
   overlayComplete: '#ffffff',
@@ -69,12 +71,14 @@ const THEME_DARK = {
   tileWildPlaced: '#78350f',
   tileObstacle: '#000000',
   accentPrimary: '#65a30d',
-  accentSecondary: '#4d7c0f',
+  accentSecondary: '#a3e635',
   accentButton: '#3a8012',
+  accentMazeText: '#fbbf24',
+  accentText: '#65a30d',
   accentBirthday: '#f9a8d4',
   accentBirthdayText: '#1f2937',
   textMain: '#f9fafb',
-  textSub: '#9ca3af',
+  textSub: '#b6bcc8',
   starGold: '#fbbf24',
   starPurple: '#c084fc',
   overlayComplete: '#1f2937',
@@ -829,31 +833,31 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
          <div className="flex items-center justify-between">
              <div className="flex items-center gap-2">
                 <Crown size={20} className="text-yellow-500" />
-                <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: theme.textSub }}>
+                <h2 className="text-xs sm:text-sm font-black uppercase tracking-widest whitespace-nowrap" style={{ color: theme.textSub }}>
                     {view === 'daily' ? 'Today\'s Top' : (view === 'weekly' ? 'Weekly Best' : 'Monthly Best')}
                 </h2>
              </div>
              <div className="flex rounded-lg p-1" style={{ backgroundColor: theme.boardLines }}>
-                 <button aria-pressed={view === 'daily'} onClick={() => setView('daily')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Daily</button>
-                 <button aria-pressed={view === 'weekly'} onClick={() => setView('weekly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Weekly</button>
-                 <button aria-pressed={view === 'monthly'} onClick={() => setView('monthly')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Monthly</button>
+                 <button aria-pressed={view === 'daily'} style={view === 'daily' ? undefined : { color: theme.textSub }} onClick={() => setView('daily')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'daily' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Daily</button>
+                 <button aria-pressed={view === 'weekly'} style={view === 'weekly' ? undefined : { color: theme.textSub }} onClick={() => setView('weekly')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'weekly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Weekly</button>
+                 <button aria-pressed={view === 'monthly'} style={view === 'monthly' ? undefined : { color: theme.textSub }} onClick={() => setView('monthly')} className={`px-1.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${view === 'monthly' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Monthly</button>
              </div>
          </div>
 
          <div className="flex justify-center">
              <div className="flex rounded-lg p-1 w-full" style={{ backgroundColor: theme.boardLines }}>
-                 <button aria-pressed={modeFilter === 'standard'} onClick={() => setModeFilter('standard')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'text-gray-400 hover:text-gray-600'}`}>Standard</button>
+                 <button aria-pressed={modeFilter === 'standard'} style={modeFilter === 'standard' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('standard')} className={`flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'standard' ? 'bg-white shadow-sm text-black' : 'hover:opacity-70'}`}>Standard</button>
                  {/* CHANGED: Quick -> Maze (UI Update) */}
-                 <button aria-pressed={modeFilter === 'maze'} onClick={() => setModeFilter('maze')} className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-400 hover:text-gray-600'}`}>Maze Mode</button>
+                 <button aria-pressed={modeFilter === 'maze'} style={modeFilter === 'maze' ? undefined : { color: theme.textSub }} onClick={() => setModeFilter('maze')} className={`flex-1 py-1 rounded-md text-xs font-bold uppercase tracking-wide transition-all ${modeFilter === 'maze' ? 'bg-white shadow-sm text-purple-600' : 'hover:opacity-70'}`}>Maze Mode</button>
              </div>
          </div>
        </div>
 
        <div tabIndex={0} role="region" aria-label="Leaderboard scores" className="flex-1 overflow-y-auto no-scrollbar pr-1">
          {loading ? (
-           <div className="text-center py-8 text-gray-400 text-sm animate-pulse">Loading...</div>
+           <div className="text-center py-8 text-sm animate-pulse" style={{ color: theme.textSub }}>Loading...</div>
          ) : leaderboard.length === 0 ? (
-           <div className="text-center py-8 text-gray-400 text-sm italic">No scores yet.<br/>Be the first!</div>
+           <div className="text-center py-8 text-sm italic" style={{ color: theme.textSub }}>No scores yet.<br/>Be the first!</div>
          ) : (
            <div className="space-y-1">
              {leaderboard.map((entry, idx) => {
@@ -875,11 +879,11 @@ const DailyLeaderboard = ({ highlightName, user, onRankFound, lastUpdated, initi
    <div key={idx} className={`flex justify-between items-center p-2 rounded-lg text-sm transition-all border ${entry.name === highlightName ? `bg-[${theme.accentPrimary}]/10 border-[${theme.accentPrimary}]/20` : (isElite ? 'bg-amber-100 border-amber-300' : 'hover:bg-white/10 border-transparent')}`}
         style={entry.name !== highlightName && !isElite ? { borderColor: 'transparent' } : {}}>
        <div className="flex items-center gap-2">
-           <span className={`font-black w-5 text-center ${idx === 0 ? 'text-yellow-600 text-lg' : idx === 1 ? 'text-gray-500 text-base' : idx === 2 ? 'text-orange-700 text-base' : 'text-gray-500'}`}>{idx + 1}</span>
+           <span className={`font-black w-5 text-center ${idx === 0 ? 'text-yellow-800 text-lg' : idx === 1 ? 'text-gray-600 text-base' : idx === 2 ? 'text-orange-800 text-base' : ''}`} style={idx > 2 ? { color: theme.textSub } : undefined}>{idx + 1}</span>
            <div className="flex items-center gap-1 overflow-hidden">
                {isElite && <Crown size={14} className="text-yellow-600 fill-yellow-600 shrink-0" />}
                <span className={`font-bold truncate max-w-[90px] ${entry.name === highlightName ? '' : (isElite ? 'text-amber-900' : '')}`} style={{ color: entry.name === highlightName ? theme.textMain : (isElite ? '#78350f' : theme.textMain) }}>{entry.name}</span>
-               {dateDisplay && (<span className="text-[9px] font-normal ml-1 border-l pl-1" style={{ color: theme.textSub, borderColor: theme.boardLines }}>{dateDisplay}</span>)}
+               {dateDisplay && (<span className="text-xs font-normal ml-1 border-l pl-1" style={{ color: isElite ? "#78350f" : theme.textSub, borderColor: isElite ? "#d97706" : theme.boardLines }}>{dateDisplay}</span>)}
            </div>
        </div>
        <span className={`font-mono font-black px-2 py-0.5 rounded-md text-xs ${isElite ? 'bg-amber-200 text-amber-900' : 'bg-gray-100 text-gray-900'}`}>{entry.score}m</span>
@@ -2104,7 +2108,7 @@ export default function App() {
                     transform: isSelected ? 'translateY(-12px) rotate(0deg)' : `translateY(0) rotate(${isSelected ? 0 : (letter.charCodeAt(0) % 5 - 2)}deg)`
                 }}
               >
-                  {topTile && topTile.isNew && <div className="absolute -top-3 -right-2 bg-green-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm z-50 tracking-tighter">NEW</div>}
+                  {topTile && topTile.isNew && <div className="absolute -top-3 -right-2 bg-green-700 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm z-50 tracking-tighter">NEW</div>}
                   {letter === '*' ? <Sparkles size={20} fill={theme.starPurple} className="text-purple-500" /> : letter}
               </button>
           </div>
@@ -2124,7 +2128,7 @@ export default function App() {
         <div className="max-w-md w-full flex flex-col items-center text-center space-y-12 animate-fade-in lg:h-[600px] justify-center shrink-0 flex-1 self-stretch relative">
             <div className="space-y-4 flex flex-col items-center w-full mt-6">
                 <h1 className="sr-only">Long Jump</h1>{ <RiveLogo /> }
-                <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400 mt-4">
+                <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase mt-4" style={{ color: theme.textSub }}>
                     <span>Refreshed Daily</span>
                     <Star size={12} className="text-yellow-500 fill-yellow-500 animate-[spin_4s_linear_infinite]" />
                 </div>
@@ -2172,10 +2176,10 @@ export default function App() {
                 <button
                     onClick={() => handleStartGame('maze')}
                     className="flex-1 py-2 rounded-2xl font-black text-lg uppercase shadow-lg hover:-translate-y-1 active:translate-y-0 transition-all flex flex-col items-center justify-center gap-0 text-white"
-                    style={{ backgroundColor: '#d97706' }}
+                    style={{ backgroundColor: '#b45309' }}
                 >
                     <span>MAZE MODE</span>
-                    <span className="text-[10px] font-bold text-orange-100/80 tracking-widest">
+                    <span className="text-xs font-bold text-white tracking-widest">
                         HARDCORE
                     </span>
                 </button>
@@ -2189,12 +2193,12 @@ export default function App() {
                     </button>
                     <a href="https://www.richardbolland.co.za" target="_blank" rel="noopener noreferrer" className="text-xs hover:opacity-80 border-b border-gray-500 transition-colors pb-0.5 whitespace-nowrap" style={{ color: theme.textSub }}>By Richard Bolland</a>
                     <span style={{ color: theme.boardLines }}>|</span>
-                    <a href="https://pay.yoco.com/richard-bolland" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full text-pink-600 font-bold text-xs hover:bg-pink-100 transition-colors shadow-sm whitespace-nowrap">
+                    <a href="https://pay.yoco.com/richard-bolland" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full text-pink-700 font-bold text-xs hover:bg-pink-100 transition-colors shadow-sm whitespace-nowrap">
                         <Heart size={14} className="fill-pink-600" />
                         <span>Tip Jar</span>
                     </a>
                 </div>
-                <span className="text-[10px] text-center max-w-xs leading-tight" style={{ color: theme.textSub }}>Help cover server costs & keep the game running.</span>
+                <span className="text-xs text-center max-w-xs leading-tight" style={{ color: theme.textSub }}>Help cover server costs & keep the game running.</span>
             </div>
 
             <div className="block lg:hidden w-full h-full min-h-[300px]">
@@ -2284,20 +2288,20 @@ export default function App() {
                            <p className="text-xs" style={{ color: theme.textSub }}>
                                The first tiles were placed in November 2025. A year of daily jumps later, thank you for playing.
                            </p>
-                           <ul className="text-[10px] list-disc list-inside mt-1" style={{ color: theme.textSub }}>
+                           <ul className="text-xs list-disc list-inside mt-1" style={{ color: theme.textSub }}>
                                <li>A birthday celebration on the day itself</li>
                                <li>Share the news and bring a friend along</li>
                            </ul>
                        </div>
 
                         {/* v9.10 - Maze Mode Update */}
-                        <div className="border-l-2 pl-3" style={{ borderColor: '#D97706' }}>
-                           <div className="text-xs font-bold uppercase" style={{ color: '#D97706' }}>v9.10</div>
+                        <div className="border-l-2 pl-3" style={{ borderColor: theme.accentMazeText }}>
+                           <div className="text-xs font-bold uppercase" style={{ color: theme.accentMazeText }}>v9.10</div>
                            <div className="font-bold" style={{ color: theme.textMain }}>Maze Mode Arrives!</div>
                            <p className="text-xs" style={{ color: theme.textSub }}>
                                New hardcore mode! Navigate dense obstacles with big rewards!.
                            </p>
-                           <ul className="text-[10px] list-disc list-inside mt-1" style={{ color: theme.textSub }}>
+                           <ul className="text-xs list-disc list-inside mt-1" style={{ color: theme.textSub }}>
                                <li>New "Maze" Leaderboard</li>
                                <li>End Game Word List & Stats</li>
                            </ul>
@@ -2305,14 +2309,14 @@ export default function App() {
 
                         {/* v9.01 - Christmas Polish */}
                         <div className="border-l-2 pl-3 border-gray-200">
-                           <div className="text-xs font-bold uppercase text-gray-400">v9.01</div>
+                           <div className="text-xs font-bold uppercase" style={{ color: theme.textSub }}>v9.01</div>
                            <div className="font-bold" style={{ color: theme.textSub }}>Christmas Mode (Archived)</div>
                            <p className="text-xs" style={{ color: theme.textSub }}>New Gift Boxes, Secret Rewards, and festive fixes.</p>
                        </div>
                        
                        {/* v8.11 - Dictionary */}
                        <div className="border-l-2 border-gray-200 pl-3">
-                           <div className="text-xs font-bold text-gray-400 uppercase">v8.11</div>
+                           <div className="text-xs font-bold uppercase" style={{ color: theme.textSub }}>v8.11</div>
                            <div className="font-bold" style={{ color: theme.textSub }}>Dictionary Upgrade</div>
                            <p className="text-xs" style={{ color: theme.textSub }}>Now powered by Merriam-Webster Collegiate Dictionary!</p>
                        </div>
@@ -2342,15 +2346,15 @@ export default function App() {
                   <div className="flex justify-between items-start mb-8 px-1 gap-1">
                       <div className="flex flex-col items-center">
                           <span className="text-2xl md:text-3xl font-black mb-1" style={{ color: theme.textMain }}>{finalPlayerStats?.gamesPlayed || 0}</span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Played</span>
+                          <span className="text-xs font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Played</span>
                       </div>
                       <div className="flex flex-col items-center">
                           <span className="text-2xl md:text-3xl font-black mb-1" style={{ color: theme.textMain }}>{finalPlayerStats?.currentStreak || 0}</span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Current<br/>Streak</span>
+                          <span className="text-xs font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Current<br/>Streak</span>
                       </div>
                       <div className="flex flex-col items-center">
                           <span className="text-2xl md:text-3xl font-black mb-1" style={{ color: theme.textMain }}>{finalPlayerStats?.maxStreak || 0}</span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Max<br/>Streak</span>
+                          <span className="text-xs font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Max<br/>Streak</span>
                       </div>
                       <div className="flex flex-col items-center">
                           <span className="text-2xl md:text-3xl font-black mb-1" style={{ color: theme.textMain }}>
@@ -2358,7 +2362,7 @@ export default function App() {
                                 ? Math.round(finalPlayerStats.totalDistance / finalPlayerStats.gamesPlayed) 
                                 : 0}m
                           </span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Avg<br/>Dist</span>
+                          <span className="text-xs font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Avg<br/>Dist</span>
                       </div>
                       <div className="flex flex-col items-center">
                           <span className="text-2xl md:text-3xl font-black mb-1" style={{ color: theme.textMain }}>
@@ -2366,7 +2370,7 @@ export default function App() {
                                 ? (finalPlayerStats.totalDistance / 1000).toFixed(1) + 'k' 
                                 : (finalPlayerStats?.totalDistance || 0) + 'm'}
                           </span>
-                          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Total<br/>Dist</span>
+                          <span className="text-xs font-bold uppercase tracking-wide leading-tight" style={{ color: theme.textSub }}>Total<br/>Dist</span>
                       </div>
                   </div>
 
@@ -2376,29 +2380,29 @@ export default function App() {
                     {/* Top Row: Athlete & Distance Side-by-Side */}
                     <div className="flex border-b" style={{ borderColor: theme.boardLines }}>
                         <div className="flex-1 p-4 border-r" style={{ borderColor: theme.boardLines }}>
-                            <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-60" style={{ color: theme.textSub }}>Athlete</div>
+                            <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: theme.textSub }}>Athlete</div>
                             <div className="text-xl font-black truncate" style={{ color: theme.textMain }}>{playerName}</div>
                         </div>
                         <div className="flex-1 p-4 bg-black/5">
-                            <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-60" style={{ color: theme.textSub }}>Distance</div>
-                            <div className="text-3xl font-black" style={{ color: theme.accentPrimary }}>{displayScore}m</div>
+                            <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: theme.textSub }}>Distance</div>
+                            <div className="text-3xl font-black" style={{ color: theme.accentText }}>{displayScore}m</div>
                         </div>
                     </div>
 
                     {/* Bottom Row: Word List */}
-                    <div className="p-4 bg-white/50">
-                        <div className="text-[10px] font-bold uppercase tracking-widest mb-2 opacity-60 text-left" style={{ color: theme.textSub }}>
+                    <div className="p-4" style={{ backgroundColor: darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)" }}>
+                        <div className="text-xs font-bold uppercase tracking-widest mb-2 text-left" style={{ color: theme.textSub }}>
                             Words Found ({playedWords.length})
                         </div>
                         <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto custom-scrollbar content-start">
                             {playedWords.length > 0 ? (
                                 playedWords.map((word, i) => (
-                                    <span key={i} className="px-2 py-1 rounded text-[10px] font-bold border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines, color: theme.textMain }}>
+                                    <span key={i} className="px-2 py-1 rounded text-xs font-bold border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines, color: theme.textMain }}>
                                         {word}
                                     </span>
                                 ))
                             ) : (
-                                <span className="text-xs italic opacity-50">No words found yet.</span>
+                                <span className="text-xs italic" style={{ color: theme.textSub }}>No words found yet.</span>
                             )}
                         </div>
                     </div>
@@ -2483,7 +2487,7 @@ export default function App() {
                   </div>
                   <h2 className="text-xl font-black mb-2 uppercase" style={{ color: theme.textMain }}>Use Undo?</h2>
                   <p className="mb-6 text-sm" style={{ color: theme.textSub }}>
-                      You can only use Undo <strong style={{ color: theme.accentPrimary }}>once per turn</strong>. <br/><br/>
+                      You can only use Undo <strong style={{ color: theme.accentText }}>once per turn</strong>. <br/><br/>
                       Are you sure you want to go back?
                   </p>
                   <div className="flex gap-3">
@@ -2536,7 +2540,7 @@ export default function App() {
           <div role="dialog" aria-modal="true" aria-label="Submit score" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
               <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <h2 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Submit Score?</h2>
-                  <p className="mb-8" style={{ color: theme.textSub }}>You reached column <strong style={{ color: theme.accentPrimary }}>{score}</strong>. This will end your current run.</p>
+                  <p className="mb-8" style={{ color: theme.textSub }}>You reached column <strong style={{ color: theme.accentText }}>{score}</strong>. This will end your current run.</p>
                   <div className="flex gap-3">
                       <button onClick={handleCancelSubmit} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
                       <button onClick={handleConfirmSubmit} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all" style={{ backgroundColor: theme.accentButton }}>Confirm</button>
@@ -2588,7 +2592,7 @@ export default function App() {
            </div>
            
            {dailyLeader && (
-               <div className="hidden md:flex items-center gap-2 mt-1 text-[10px] animate-fade-in whitespace-nowrap">
+               <div className="hidden md:flex items-center gap-2 mt-1 text-xs animate-fade-in whitespace-nowrap">
                    <span className="font-bold uppercase tracking-widest" style={{ color: theme.textSub }}>
                        {gameMode === 'quick' ? 'Quick Leader' : 'Standard Leader'}
                    </span>
@@ -2633,10 +2637,10 @@ export default function App() {
             </div>
         </div>
         <div className="flex flex-col items-end w-32 gap-1">
-              <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentPrimary }}>{playerName || "PLAYER 1"}</span>
-              <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentPrimary }}><Ruler size={16} /> {displayScore}m</div>
+              <span className="text-xs font-bold tracking-widest" style={{ color: theme.accentText }}>{playerName || "PLAYER 1"}</span>
+              <div className="flex items-center gap-1 font-black text-lg" style={{ color: theme.accentText }}><Ruler size={16} /> {displayScore}m</div>
               <div className="flex gap-2">
-                  <button onClick={() => setShowRules(true)} className="text-[10px] font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
+                  <button onClick={() => setShowRules(true)} className="text-xs font-bold hover:opacity-70 uppercase tracking-widest flex items-center gap-1" style={{ color: theme.textSub }}>Rules <Info size={12} /></button>
                   <button aria-label="Settings" onClick={() => setShowSettings(true)} className="hover:opacity-70" style={{ color: theme.textSub }}><Settings size={14} /></button>
               </div>
         </div>
@@ -2647,8 +2651,8 @@ export default function App() {
             <div className="relative p-1 mx-4 pt-16 pb-16" style={{ width: 'fit-content', minWidth: 'fit-content' }} id="board-capture-area">
                 
                 {/* PAR LINE */}
-                <div className="absolute top-0 bottom-0 border-r-2 border-red-400 border-dashed z-20 pointer-events-none opacity-60" style={{ left: `${dailyPar * CELL_SIZE}px` }}>
-                   <span className="absolute top-[-20px] right-0 translate-x-1/2 text-red-500 text-[10px] font-black tracking-widest">PAR</span>
+                <div className="absolute top-0 bottom-0 border-r-2 border-red-400/60 border-dashed z-20 pointer-events-none" style={{ left: `${dailyPar * CELL_SIZE}px` }}>
+                   <span className="absolute top-[-20px] right-0 translate-x-1/2 text-xs font-black tracking-widest" style={{ color: darkMode ? "#fca5a5" : "#b91c1c" }}>PAR</span>
                 </div>
 
                 <div className="flex relative mb-3" style={{ width: `${grid[0].length * CELL_SIZE}px`, height: '24px' }}>
@@ -2764,7 +2768,7 @@ export default function App() {
             <div role="status" aria-live="polite" className={`px-4 py-3 rounded-lg text-xs md:text-sm font-bold transition-colors shadow-sm w-full md:w-auto text-center flex items-center justify-center gap-2 ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-white text-gray-600'}`}>
                 <span>{isValidating ? "Checking..." : message.text}</span>
                 {message.type === 'error' && message.invalidWord && (
-                    <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-[10px] uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
+                    <button onClick={() => handleReportRequest(message.invalidWord)} className="ml-2 px-2 py-0.5 rounded text-xs uppercase tracking-wide flex items-center gap-1 transition-colors hover:opacity-80" style={{ backgroundColor: theme.accentPrimary, color: 'white' }}>
                         Report <Flag size={10} />
                     </button>
                 )}
@@ -2774,7 +2778,7 @@ export default function App() {
                 <button onClick={shuffleHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><Shuffle size={16} /> Shuffle</button>
                 <button onClick={sortHand} disabled={isFinishing || gameState !== 'playing'} className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-sm shadow-sm hover:shadow-md hover:opacity-90 transition-all uppercase tracking-wider disabled:opacity-50" style={{ backgroundColor: theme.modalBg, color: theme.textMain }}><ArrowDownAZ size={16} /> Sort A-Z</button>
                 {placedTiles.length > 0 && (
-                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentPrimary, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
+                <button onClick={validateAndCommit} disabled={isValidating || isFinishing || gameState !== 'playing'} className={`flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-none uppercase tracking-wider transition-all ${isValidating || isFinishing ? 'bg-gray-400 text-gray-200 cursor-wait' : ''}`} style={!(isValidating || isFinishing) ? { backgroundColor: theme.accentButton, color: 'white' } : {}}>{isValidating ? 'Checking...' : 'JUMP'} <Check size={18} strokeWidth={4} /></button>
                 )}
                 {placedTiles.length > 0 && (
                 <button aria-label="Cancel placement" 
