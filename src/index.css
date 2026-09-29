@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* A phone held sideways: wide but under 500px tall. The game screen is built
+   for portrait and cannot fit board, controls and hand in that height, so it
+   scrolls instead of clipping. */
+@custom-variant short-landscape (@media (orientation: landscape) and (max-height: 500px));
+
 /* Players who ask their OS for less motion get no looping or decorative animation. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -2311,7 +2311,7 @@ export default function App() {
 
   // --- GAME RENDER ---
   return (
-    <div role="main" className="h-[100dvh] w-full landscape:h-screen landscape:w-screen landscape:overflow-hidden font-sans flex flex-col items-center overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
+    <div role="main" className="h-[100dvh] w-full landscape:h-screen landscape:w-screen landscape:overflow-hidden short-landscape:h-auto short-landscape:min-h-screen short-landscape:overflow-y-auto short-landscape:overflow-x-hidden font-sans flex flex-col items-center overflow-hidden relative transition-colors duration-300" style={{ backgroundColor: theme.background, color: theme.textMain }}>
       <h1 className="sr-only">Long Jump</h1>
       {gameState === 'gameOver' && !isReviewingBoard && (
           <div className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-start lg:justify-center p-6 gap-6 lg:gap-12 overflow-y-auto animate-fade-in pt-20 lg:pt-6">
