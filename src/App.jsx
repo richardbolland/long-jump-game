@@ -2191,8 +2191,8 @@ export default function App() {
 
         {/* SETTINGS MODAL (Moved OUTSIDE the hidden div so it works on mobile) */}
         {showSettings && (
-            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
-                <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
+            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+                <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
                         <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70 p-2.5 -m-2.5" style={{ color: theme.textSub }}><X size={24} /></button>
@@ -2226,9 +2226,9 @@ export default function App() {
 
         {/* 1ST BIRTHDAY MODAL */}
         {showBirthdayModal && (
-          <div role="dialog" aria-modal="true" aria-label="Long Jump turns 1" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+          <div role="dialog" aria-modal="true" aria-label="Long Jump turns 1" className="fixed inset-0 z-[110] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4 pt-12">
               <Confetti theme={theme} />
-              <div className="rounded-2xl p-8 pt-14 shadow-2xl max-w-sm w-full text-center border relative z-[111]" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday }}>
+              <div className="m-auto rounded-2xl p-8 pt-14 shadow-2xl max-w-sm w-full text-center border relative z-[111]" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday }}>
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 p-4 rounded-full shadow-xl border-2" style={{ backgroundColor: theme.modalBg, borderColor: theme.accentBirthday, color: theme.accentBirthday }}>
                       <Cake size={32} />
                   </div>
@@ -2244,7 +2244,7 @@ export default function App() {
                   <button onClick={handleShareBirthday} className="w-full mt-5 py-4 rounded-xl font-bold text-lg uppercase tracking-widest shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: theme.accentBirthday, color: theme.accentBirthdayText }}>
                       {birthdayShared ? (<><CheckCheck size={20} /> Copied</>) : (<><Share2 size={20} /> Share The News</>)}
                   </button>
-                  <button onClick={dismissBirthdayModal} className="w-full mt-2 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all hover:opacity-80" style={{ backgroundColor: theme.boardLines, color: theme.textMain }}>
+                  <button onClick={dismissBirthdayModal} className="w-full mt-2 min-h-11 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all hover:opacity-80" style={{ backgroundColor: theme.boardLines, color: theme.textMain }}>
                       Let Me Jump
                   </button>
               </div>
@@ -2253,9 +2253,9 @@ export default function App() {
 
         {/* CHANGELOG MODAL */}
         {showChangelog && (
-          <div role="dialog" aria-modal="true" aria-label="Updates" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-              <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
-                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div role="dialog" aria-modal="true" aria-label="Updates" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+                  <div tabIndex={0} role="region" aria-label="Update history" className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                         {/* 1st Birthday */}
                         <div className="border-l-2 pl-3" style={{ borderColor: theme.accentBirthday }}>
                            <div className="flex items-center gap-1.5 text-xs font-bold uppercase" style={{ color: theme.accentBirthday }}>
@@ -2415,23 +2415,23 @@ export default function App() {
       )}
 
       {showBlankPicker && (
-          <div role="dialog" aria-modal="true" aria-label="Pick a letter" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-              <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Pick a letter" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <h2 className="text-xl font-black mb-4 uppercase" style={{ color: theme.textMain }}>Pick a Letter</h2>
                   <div className="grid grid-cols-6 gap-2">
                       {Object.keys(LETTER_POOL).filter(l => l !== '*').map(l => (
                           <button key={l} onClick={() => handleBlankSelection(l)} className="w-10 h-10 rounded-lg font-bold text-xl shadow-sm hover:scale-110 transition-transform border" style={{ backgroundColor: theme.tileTemp, borderColor: theme.tileTempRing, color: theme.textMain }}>{l}</button>
                       ))}
                   </div>
-                  <button onClick={() => { setShowBlankPicker(false); setPendingBlankPlacement(null); }} className="mt-6 text-sm font-bold hover:opacity-80" style={{ color: theme.textSub }}>Cancel</button>
+                  <button onClick={() => { setShowBlankPicker(false); setPendingBlankPlacement(null); }} className="mt-3 min-h-11 px-6 text-sm font-bold hover:opacity-80" style={{ color: theme.textSub }}>Cancel</button>
               </div>
           </div>
       )}
 
       {/* REPORT CONFIRMATION MODAL */}
       {showReportModal && (
-          <div role="dialog" aria-modal="true" aria-label="Report missing word" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-              <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Report missing word" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4">
                       <div className="bg-yellow-100 p-3 rounded-full">
                           <Flag size={32} className="text-yellow-600" />
@@ -2448,7 +2448,7 @@ export default function App() {
 
                   <div className="flex gap-3">
                       <button onClick={() => { setShowReportModal(false); setPendingReportWord(null); }} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
-                      <button onClick={confirmReport} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-yellow-500 hover:bg-yellow-600">Report & Add</button>
+                      <button onClick={confirmReport} className="flex-1 py-3 rounded-xl font-bold text-gray-900 shadow-lg transition-all bg-yellow-400 hover:bg-yellow-500">Report & Add</button>
                   </div>
               </div>
           </div>
@@ -2456,8 +2456,8 @@ export default function App() {
 
       {/* UNDO CONFIRMATION MODAL */}
       {showUndoModal && (
-          <div role="dialog" aria-modal="true" aria-label="Use undo" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-              <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Use undo" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full border text-center" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4">
                       <div className="bg-blue-100 p-3 rounded-full">
                           <RotateCcw size={32} className="text-blue-600" />
@@ -2470,15 +2470,15 @@ export default function App() {
                   </p>
                   <div className="flex gap-3">
                       <button onClick={() => setShowUndoModal(false)} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
-                      <button onClick={confirmUndo} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-blue-500 hover:bg-blue-600">Confirm Undo</button>
+                      <button onClick={confirmUndo} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-blue-600 hover:bg-blue-700">Confirm Undo</button>
                   </div>
               </div>
           </div>
       )}
 
       {(showTutorial || showRules) && (
-          <div role="dialog" aria-modal="true" aria-label="Game rules" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
-              <div className="rounded-2xl p-8 shadow-2xl max-w-md w-full text-center border relative" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Game rules" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4 pt-16">
+              <div className="m-auto rounded-2xl p-8 shadow-2xl max-w-md w-full text-center border relative" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="absolute -top-12 left-1/2 -translate-x-1/2 p-4 rounded-full shadow-xl" style={{ backgroundColor: theme.modalBg }}>
                       <BookOpen size={48} style={{ color: theme.accentPrimary }} />
                   </div>
@@ -2501,22 +2501,22 @@ export default function App() {
       )}
 
       {showExitConfirmation && (
-          <div role="dialog" aria-modal="true" aria-label="Exit game" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
-              <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Exit game" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/20 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-8 shadow-2xl max-w-sm w-full text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <div className="flex justify-center mb-4"><div className="bg-red-100 p-3 rounded-full"><LogOut size={32} className="text-red-500" /></div></div>
                   <h2 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Exit Game?</h2>
                   <p className="mb-8" style={{ color: theme.textSub }}>Are you sure you want to quit? You will lose your current progress.</p>
                   <div className="flex gap-3">
                       <button onClick={() => setShowExitConfirmation(false)} className="flex-1 py-3 rounded-xl font-bold hover:opacity-80 transition-colors" style={{ backgroundColor: theme.boardLines, color: theme.textSub }}>Cancel</button>
-                      <button onClick={confirmExit} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-red-500 hover:bg-red-600">Exit</button>
+                      <button onClick={confirmExit} className="flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all bg-red-600 hover:bg-red-700">Exit</button>
                   </div>
               </div>
           </div>
       )}
 
       {showConfirmSubmit && (
-          <div role="dialog" aria-modal="true" aria-label="Submit score" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
-              <div className="rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
+          <div role="dialog" aria-modal="true" aria-label="Submit score" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/20 backdrop-blur-sm animate-fade-in p-4">
+              <div className="m-auto rounded-2xl p-8 shadow-2xl max-w-sm w-full text-center border" style={{ backgroundColor: theme.modalBg, borderColor: theme.boardLines }}>
                   <h2 className="text-2xl font-black mb-2" style={{ color: theme.textMain }}>Submit Score?</h2>
                   <p className="mb-8" style={{ color: theme.textSub }}>You reached column <strong style={{ color: theme.accentText }}>{score}</strong>. This will end your current run.</p>
                   <div className="flex gap-3">
@@ -2530,8 +2530,8 @@ export default function App() {
       {/* IN-GAME SETTINGS MODAL */}
       {/* SETTINGS MODAL */}
         {showSettings && (
-            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
-                <div className="rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
+            <div role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-[100] flex overflow-y-auto bg-black/40 backdrop-blur-sm animate-fade-in p-4 pointer-events-auto">
+                <div className="m-auto rounded-2xl p-6 shadow-2xl max-w-sm w-full border max-h-[85vh] overflow-y-auto custom-scrollbar bg-white" style={{ backgroundColor: theme.modalBg }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-black uppercase" style={{ color: theme.textMain }}>Settings</h2>
                         <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="hover:opacity-70 p-2.5 -m-2.5" style={{ color: theme.textSub }}><X size={24} /></button>
